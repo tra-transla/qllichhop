@@ -157,10 +157,19 @@ export default function Schedules() {
 
   const downloadTemplate = () => {
     const wsData = [
-      ['Ngày (YYYY-MM-DD)', 'Giờ (HH:MM)', 'Nội dung', 'ID Lãnh đạo', 'Địa điểm'],
-      [format(tomorrow, 'yyyy-MM-dd'), '08:00', 'Họp giao ban thường kỳ', leaders[0]?.id || 1, 'Phòng họp số 1']
+      ['Ngày (DD/MM/YYYY)', 'Giờ (HH:MM)', 'Nội dung', 'ID Lãnh đạo', 'Địa điểm'],
+      [format(tomorrow, 'dd/MM/yyyy'), '08:00', 'Họp giao ban thường kỳ', leaders[0]?.id || 1, 'Phòng họp số 1']
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Force the date column to be treated as text to prevent Excel auto-formatting issues
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:E2');
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 });
+      if (ws[cellAddress]) {
+        ws[cellAddress].z = '@';
+      }
+    }
 
     const leadersData = [['ID', 'Họ tên', 'Chức vụ', 'Phòng/Ban']];
     leaders.forEach(l => leadersData.push([l.id, l.name, l.position, (l as any).department || '']));
@@ -185,9 +194,30 @@ export default function Schedules() {
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
       const payloads = jsonData.map((row: any) => {
-        let date = row['Ngày (YYYY-MM-DD)'];
-        if (date instanceof Date) {
-          date = format(date, 'yyyy-MM-dd');
+        let rawDate = row['Ngày (DD/MM/YYYY)'] || row['Ngày (DD-MM-YYYY)'] || row['Ngày (YYYY-MM-DD)'] || row['Ngày'];
+        let date = '';
+
+        if (rawDate instanceof Date) {
+          date = format(rawDate, 'yyyy-MM-dd');
+        } else if (typeof rawDate === 'number') {
+          // Handle Excel serial date just in case
+          const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+          const parsedDate = new Date(excelEpoch.getTime() + rawDate * 86400000);
+          date = format(parsedDate, 'yyyy-MM-dd');
+        } else if (typeof rawDate === 'string') {
+          // Handle DD/MM/YYYY or DD-MM-YYYY or YYYY-MM-DD
+          const parts = rawDate.split(/[\/\-]/);
+          if (parts.length === 3) {
+            if (parts[0].length === 4) {
+              // YYYY-MM-DD
+              date = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+            } else {
+              // DD-MM-YYYY
+              date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+          } else {
+            date = rawDate;
+          }
         }
         
         let time = row['Giờ (HH:MM)'];
@@ -198,6 +228,12 @@ export default function Schedules() {
            const hours = Math.floor(totalSeconds / 3600);
            const minutes = Math.floor((totalSeconds % 3600) / 60);
            time = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        } else if (typeof time === 'string') {
+           // Ensure HH:mm format if user typed "8:00"
+           const timeParts = time.split(':');
+           if (timeParts.length >= 2) {
+             time = `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
+           }
         }
 
         return {
