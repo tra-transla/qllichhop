@@ -1,7 +1,8 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, LayoutDashboard, Settings } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Calendar, Users, LayoutDashboard, Settings, LogOut, Shield } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useAuth } from '../contexts/AuthContext';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -9,7 +10,14 @@ export function cn(...inputs: ClassValue[]) {
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isAdmin = location.pathname.startsWith('/admin');
+  const { session, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -42,6 +50,15 @@ export default function Layout() {
                 >
                   Quản lý
                 </Link>
+                {session && (
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Đăng xuất
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -85,6 +102,18 @@ export default function Layout() {
               >
                 <Users className="w-4 h-4" />
                 Danh sách Lãnh đạo
+              </Link>
+              <Link
+                to="/admin/users"
+                className={cn(
+                  "py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2",
+                  location.pathname === '/admin/users'
+                    ? "border-indigo-500 text-indigo-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                )}
+              >
+                <Shield className="w-4 h-4" />
+                Quản lý tài khoản
               </Link>
             </nav>
           </div>
