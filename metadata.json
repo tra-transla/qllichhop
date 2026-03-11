@@ -1,0 +1,5 @@
+{
+  "name": "Hệ thống quản lý lịch công tác",
+  "description": "Ứng dụng quản lý và hiển thị lịch công tác của lãnh đạo theo thời gian thực.",
+  "requestFramePermissions": []
+}
