@@ -20,14 +20,11 @@ export default function Dashboard() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-  const endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
-
-  const fetchSchedules = async () => {
+  const fetchSchedules = async (start: Date, end: Date) => {
     setLoading(true);
     try {
-      const startStr = format(startDate, 'yyyy-MM-dd');
-      const endStr = format(endDate, 'yyyy-MM-dd');
+      const startStr = format(start, 'yyyy-MM-dd');
+      const endStr = format(end, 'yyyy-MM-dd');
       
       const { data, error } = await supabase
         .from('schedules')
@@ -60,11 +57,55 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchSchedules();
-    // Poll every 10 seconds for real-time updates
-    const interval = setInterval(fetchSchedules, 10000);
+    const updateData = () => {
+      const now = new Date();
+      setCurrentDate(now);
+      const start = startOfWeek(now, { weekStartsOn: 1 });
+      const end = endOfWeek(now, { weekStartsOn: 1 });
+      fetchSchedules(start, end);
+    };
+
+    updateData();
+    // Poll every 10 seconds for real-time updates and date changes
+    const interval = setInterval(updateData, 10000);
     return () => clearInterval(interval);
-  }, [currentDate]);
+  }, []);
+
+  const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
+
+  // Auto-scroll logic
+  useEffect(() => {
+    const container = document.getElementById('schedule-scroll-container');
+    if (!container) return;
+
+    let scrollInterval: NodeJS.Timeout;
+    
+    const startAutoScroll = () => {
+      // Only scroll if content is taller than container
+      if (container.scrollHeight > container.clientHeight) {
+        scrollInterval = setInterval(() => {
+          const isAtBottom = Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight;
+          
+          if (isAtBottom) {
+            // Scroll back to top
+            container.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            // Scroll down by one page (container height minus a little overlap)
+            container.scrollBy({ top: container.clientHeight - 60, behavior: 'smooth' });
+          }
+        }, 10000); // Scroll every 10 seconds
+      }
+    };
+
+    // Wait a bit for rendering to complete before calculating heights
+    const timeoutId = setTimeout(startAutoScroll, 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (scrollInterval) clearInterval(scrollInterval);
+    };
+  }, [schedules]);
 
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
@@ -92,8 +133,8 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
+    <div className="space-y-6 flex flex-col h-[calc(100vh-4rem)]">
+      <div className="text-center space-y-2 shrink-0">
         <h1 className="text-3xl font-bold text-slate-900 uppercase tracking-tight">
           Thông báo: Lịch công tác
         </h1>
@@ -102,17 +143,17 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-indigo-600 border-b border-indigo-700">
-                <th className="py-4 px-6 font-semibold text-white border-r border-indigo-500 w-48 text-center uppercase tracking-wider text-sm">Ngày</th>
-                <th className="py-4 px-4 font-semibold text-white border-r border-indigo-500 w-24 text-center uppercase tracking-wider text-sm">Buổi</th>
-                <th className="py-4 px-4 font-semibold text-white border-r border-indigo-500 w-24 text-center uppercase tracking-wider text-sm">Thời gian</th>
-                <th className="py-4 px-6 font-semibold text-white border-r border-indigo-500 text-center uppercase tracking-wider text-sm">Nội dung</th>
-                <th className="py-4 px-6 font-semibold text-white border-r border-indigo-500 w-64 text-center uppercase tracking-wider text-sm">Đồng chí</th>
-                <th className="py-4 px-6 font-semibold text-white w-64 text-center uppercase tracking-wider text-sm">Địa điểm</th>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
+        <div id="schedule-scroll-container" className="overflow-y-auto flex-1">
+          <table className="w-full text-left border-collapse relative">
+            <thead className="sticky top-0 z-20 shadow-sm">
+              <tr className="bg-indigo-600">
+                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 w-48 text-center uppercase tracking-wider text-sm bg-indigo-600">Ngày</th>
+                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-24 text-center uppercase tracking-wider text-sm bg-indigo-600">Buổi</th>
+                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-24 text-center uppercase tracking-wider text-sm bg-indigo-600">Thời gian</th>
+                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 text-center uppercase tracking-wider text-sm bg-indigo-600">Nội dung</th>
+                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 w-64 text-center uppercase tracking-wider text-sm bg-indigo-600">Đồng chí</th>
+                <th className="py-4 px-6 font-semibold text-white border-b w-64 text-center uppercase tracking-wider text-sm bg-indigo-600">Địa điểm</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">

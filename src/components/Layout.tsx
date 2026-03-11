@@ -20,7 +20,7 @@ export default function Layout() {
               <div className="flex">
                 <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900 text-lg">
                   <Calendar className="w-6 h-6 text-indigo-600" />
-                  <span>Hệ thống quản lý lịch công tác</span>
+                  <span>Hệ thống quản lý lịch công tác tuần</span>
                 </Link>
               </div>
               <div className="flex items-center gap-4">
