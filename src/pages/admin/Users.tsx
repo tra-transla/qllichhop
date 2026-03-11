@@ -4,7 +4,7 @@ import { Plus, Trash2, Shield, User as UserIcon, AlertCircle } from 'lucide-reac
 
 interface Profile {
   id: string;
-  email: string;
+  username: string;
   role: 'admin' | 'editor';
 }
 
@@ -13,7 +13,7 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
+  const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'admin' | 'editor'>('editor');
   const [actionLoading, setActionLoading] = useState(false);
@@ -29,7 +29,7 @@ export default function Users() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .order('email');
+        .order('username');
 
       if (error) {
         if (error.code === '42P01') {
@@ -55,7 +55,7 @@ export default function Users() {
     try {
       // 1. Create user in auth.users
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newEmail,
+        email: `${newUsername}@system.local`,
         password: newPassword,
       });
 
@@ -68,7 +68,7 @@ export default function Users() {
           .insert([
             {
               id: authData.user.id,
-              email: newEmail,
+              username: newUsername,
               role: newRole,
             }
           ]);
@@ -87,7 +87,7 @@ export default function Users() {
         }
       }
 
-      setNewEmail('');
+      setNewUsername('');
       setNewPassword('');
       setNewRole('editor');
       setIsAdding(false);
@@ -147,7 +147,7 @@ export default function Users() {
 {`-- Tạo bảng profiles
 create table public.profiles (
   id uuid references auth.users on delete cascade not null primary key,
-  email text not null,
+  username text not null unique,
   role text default 'editor' check (role in ('admin', 'editor'))
 );
 
@@ -188,14 +188,14 @@ create policy "Cho phép tất cả xóa profiles" on public.profiles for delete
           <h2 className="text-lg font-semibold mb-4">Thêm tài khoản mới</h2>
           <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Tên đăng nhập</label>
               <input
-                type="email"
+                type="text"
                 required
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
                 className="w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="email@example.com"
+                placeholder="Ví dụ: admin"
               />
             </div>
             <div>
@@ -245,7 +245,7 @@ create policy "Cho phép tất cả xóa profiles" on public.profiles for delete
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="py-3 px-4 font-semibold text-slate-600">Email</th>
+              <th className="py-3 px-4 font-semibold text-slate-600">Tên đăng nhập</th>
               <th className="py-3 px-4 font-semibold text-slate-600">Phân quyền</th>
               <th className="py-3 px-4 font-semibold text-slate-600 text-right">Thao tác</th>
             </tr>
@@ -267,7 +267,7 @@ create policy "Cho phép tất cả xóa profiles" on public.profiles for delete
                       <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
                         <UserIcon className="w-4 h-4" />
                       </div>
-                      <span className="font-medium text-slate-900">{profile.email}</span>
+                      <span className="font-medium text-slate-900">{profile.username}</span>
                     </div>
                   </td>
                   <td className="py-3 px-4">
