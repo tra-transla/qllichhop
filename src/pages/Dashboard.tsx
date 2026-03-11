@@ -74,38 +74,74 @@ export default function Dashboard() {
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
 
-  // Auto-scroll logic
-  useEffect(() => {
-    const container = document.getElementById('schedule-scroll-container');
-    if (!container) return;
+  // Pagination & Auto-flip logic
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
-    let scrollInterval: NodeJS.Timeout;
-    
-    const startAutoScroll = () => {
-      // Only scroll if content is taller than container
-      if (container.scrollHeight > container.clientHeight) {
-        scrollInterval = setInterval(() => {
-          const isAtBottom = Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight;
-          
-          if (isAtBottom) {
-            // Scroll back to top
-            container.scrollTo({ top: 0, behavior: 'smooth' });
-          } else {
-            // Scroll down by one page (container height minus a little overlap)
-            container.scrollBy({ top: container.clientHeight - 60, behavior: 'smooth' });
-          }
-        }, 10000); // Scroll every 10 seconds
+  useEffect(() => {
+    const calculatePages = () => {
+      const container = document.getElementById('schedule-scroll-container');
+      if (container) {
+        const header = container.querySelector('thead');
+        const headerHeight = header ? header.clientHeight : 0;
+        const viewHeight = container.clientHeight - headerHeight;
+        const contentHeight = container.scrollHeight - headerHeight;
+        
+        if (viewHeight > 0) {
+          const pages = Math.ceil(contentHeight / viewHeight);
+          setTotalPages(pages > 0 ? pages : 1);
+        }
       }
     };
 
-    // Wait a bit for rendering to complete before calculating heights
-    const timeoutId = setTimeout(startAutoScroll, 1000);
-
+    const timeoutId = setTimeout(calculatePages, 1000);
+    window.addEventListener('resize', calculatePages);
     return () => {
       clearTimeout(timeoutId);
-      if (scrollInterval) clearInterval(scrollInterval);
+      window.removeEventListener('resize', calculatePages);
     };
   }, [schedules]);
+
+  useEffect(() => {
+    if (currentPage >= totalPages) {
+      setCurrentPage(0);
+      const container = document.getElementById('schedule-scroll-container');
+      if (container) container.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [totalPages, currentPage]);
+
+  useEffect(() => {
+    if (totalPages <= 1 || isHovered) return;
+
+    const interval = setInterval(() => {
+      setIsFlipping(true);
+      
+      setTimeout(() => {
+        setCurrentPage(prev => {
+          const next = (prev + 1) % totalPages;
+          const container = document.getElementById('schedule-scroll-container');
+          if (container) {
+            const header = container.querySelector('thead');
+            const headerHeight = header ? header.clientHeight : 0;
+            const viewHeight = container.clientHeight - headerHeight;
+            
+            container.scrollTo({ 
+              top: next * viewHeight, 
+              behavior: 'instant' 
+            });
+          }
+          return next;
+        });
+        
+        setIsFlipping(false);
+      }, 400); // Wait for fade out
+
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [totalPages, isHovered]);
 
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
@@ -143,8 +179,15 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
-        <div id="schedule-scroll-container" className="overflow-y-auto flex-1">
+      <div 
+        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div 
+          id="schedule-scroll-container" 
+          className={`overflow-y-auto flex-1 transition-opacity duration-500 ${isFlipping ? 'opacity-0' : 'opacity-100'}`}
+        >
           <table className="w-full text-left border-collapse relative">
             <thead className="sticky top-0 z-20 shadow-sm">
               <tr className="bg-indigo-600">
@@ -265,6 +308,18 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
+        
+        {totalPages > 1 && (
+          <div className="bg-slate-50 border-t border-slate-200 p-3 flex justify-center items-center gap-2 text-sm font-medium text-slate-600 shrink-0">
+            {Array.from({ length: totalPages }).map((_, idx) => (
+              <div 
+                key={idx} 
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${idx === currentPage ? 'bg-indigo-600' : 'bg-slate-300'}`}
+              />
+            ))}
+            <span className="ml-2">Trang {currentPage + 1} / {totalPages}</span>
+          </div>
+        )}
       </div>
     </div>
   );
