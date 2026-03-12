@@ -191,7 +191,7 @@ export default function Dashboard() {
               <img 
                 src="https://i.postimg.cc/Ssx85WTT/Quoc-Huy-Viet-Nam-Chuan.png" 
                 alt="Logo" 
-                className="w-[70px] h-[70px] object-contain drop-shadow-md"
+                className="w-[80px] h-[80px] object-contain drop-shadow-md"
                 referrerPolicy="no-referrer"
               />
             </div>
