@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Lock, User, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';

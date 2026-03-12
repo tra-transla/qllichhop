@@ -1,8 +1,9 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, Users, LayoutDashboard, Settings, LogOut, Shield } from 'lucide-react';
+import { Calendar, Users, LayoutDashboard, Settings, LogOut, Shield, Maximize, Minimize } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from 'react';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -13,6 +14,26 @@ export default function Layout() {
   const navigate = useNavigate();
   const isAdmin = location.pathname.startsWith('/admin');
   const { session, signOut } = useAuth();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -50,6 +71,13 @@ export default function Layout() {
                 >
                   Quản lý
                 </Link>
+                <button
+                  onClick={toggleFullscreen}
+                  className="p-2 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                  title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+                >
+                  {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                </button>
                 {session && (
                   <button
                     onClick={handleLogout}
@@ -64,7 +92,14 @@ export default function Layout() {
           </div>
         </header>
       ) : (
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 hover:bg-white transition-all flex items-center justify-center"
+            title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+          >
+            {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+          </button>
           <Link
             to="/admin"
             className="p-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 hover:bg-white transition-all flex items-center justify-center"
