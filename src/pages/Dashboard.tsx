@@ -66,8 +66,8 @@ export default function Dashboard() {
     };
 
     updateData();
-    // Poll every 10 seconds for real-time updates and date changes
-    const interval = setInterval(updateData, 10000);
+    // Poll every 20 seconds for real-time updates and date changes
+    const interval = setInterval(updateData, 20000);
     return () => clearInterval(interval);
   }, []);
 
@@ -191,18 +191,17 @@ export default function Dashboard() {
           <table className="w-full text-left border-collapse relative">
             <thead className="sticky top-0 z-20 shadow-sm">
               <tr className="bg-indigo-600">
-                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 w-48 text-center uppercase tracking-wider text-sm bg-indigo-600">Ngày</th>
-                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-24 text-center uppercase tracking-wider text-sm bg-indigo-600">Buổi</th>
-                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-24 text-center uppercase tracking-wider text-sm bg-indigo-600">Thời gian</th>
-                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 text-center uppercase tracking-wider text-sm bg-indigo-600">Nội dung</th>
-                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 w-64 text-center uppercase tracking-wider text-sm bg-indigo-600">Đồng chí</th>
-                <th className="py-4 px-6 font-semibold text-white border-b w-64 text-center uppercase tracking-wider text-sm bg-indigo-600">Địa điểm</th>
+                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-28 text-center uppercase tracking-wider text-sm bg-indigo-600">Buổi</th>
+                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-28 text-center uppercase tracking-wider text-sm bg-indigo-600">Thời gian</th>
+                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 text-center uppercase tracking-wider text-sm bg-indigo-600">Nội dung công việc</th>
+                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 w-72 text-center uppercase tracking-wider text-sm bg-indigo-600">Thành phần/Lãnh đạo</th>
+                <th className="py-4 px-6 font-semibold text-white border-b w-72 text-center uppercase tracking-wider text-sm bg-indigo-600">Địa điểm</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {loading && schedules.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500">
+                  <td colSpan={5} className="py-12 text-center text-slate-500">
                     Đang tải dữ liệu...
                   </td>
                 </tr>
@@ -210,42 +209,41 @@ export default function Dashboard() {
                 const dayData = groupedSchedules[dateStr] || { morning: [], afternoon: [] };
                 const hasMorning = dayData.morning.length > 0;
                 const hasAfternoon = dayData.afternoon.length > 0;
-                const totalRows = Math.max(1, dayData.morning.length + dayData.afternoon.length);
                 const dateObj = new Date(dateStr);
                 const dayName = format(dateObj, 'EEEE', { locale: vi });
                 const formattedDate = format(dateObj, 'dd/MM/yyyy');
 
-                // If no schedules for the day, render an empty row
+                const dateHeader = (
+                  <tr key={`header-${dateStr}`} className="bg-slate-100 border-y border-slate-200">
+                    <td colSpan={5} className="py-3 px-6">
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-xl font-bold text-indigo-900 capitalize">{dayName}</span>
+                        <span className="text-lg text-slate-600">{formattedDate}</span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+
                 if (!hasMorning && !hasAfternoon) {
-                  return (
-                    <tr key={dateStr} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-4 px-6 border-r border-slate-200 text-center align-middle">
-                        <div className="font-medium text-slate-900 capitalize">{dayName}</div>
-                        <div className="text-sm text-slate-500">{formattedDate}</div>
-                      </td>
+                  return [
+                    dateHeader,
+                    <tr key={`empty-${dateStr}`} className="hover:bg-slate-50 transition-colors">
                       <td className="py-4 px-4 border-r border-slate-200 text-center text-slate-400">-</td>
                       <td className="py-4 px-4 border-r border-slate-200 text-center text-slate-400">-</td>
-                      <td className="py-4 px-6 border-r border-slate-200 text-slate-400 italic">Không có lịch</td>
+                      <td className="py-4 px-6 border-r border-slate-200 text-slate-400 italic">Không có lịch công tác</td>
                       <td className="py-4 px-6 border-r border-slate-200 text-slate-400">-</td>
                       <td className="py-4 px-6 text-slate-400">-</td>
                     </tr>
-                  );
+                  ];
                 }
 
-                const rows = [];
-                let isFirstRow = true;
+                const rows = [dateHeader];
 
                 // Render morning schedules
                 if (hasMorning) {
                   dayData.morning.forEach((schedule, idx) => {
                     rows.push(
                       <tr key={`m-${schedule.id}`} className="hover:bg-slate-50 transition-colors">
-                        {isFirstRow && (
-                          <td rowSpan={totalRows} className="py-4 px-6 border-r border-slate-200 text-center align-middle bg-white">
-                            <div className="font-medium text-slate-900 capitalize">{dayName}</div>
-                            <div className="text-sm text-slate-500">{formattedDate}</div>
-                          </td>
-                        )}
                         {idx === 0 && (
                           <td rowSpan={dayData.morning.length} className="py-4 px-4 border-r border-slate-200 text-center align-middle font-medium text-slate-700 bg-slate-50/50">
                             Sáng
@@ -265,7 +263,6 @@ export default function Dashboard() {
                         </td>
                       </tr>
                     );
-                    isFirstRow = false;
                   });
                 }
 
@@ -274,12 +271,6 @@ export default function Dashboard() {
                   dayData.afternoon.forEach((schedule, idx) => {
                     rows.push(
                       <tr key={`a-${schedule.id}`} className="hover:bg-slate-50 transition-colors border-t border-slate-100">
-                        {isFirstRow && (
-                          <td rowSpan={totalRows} className="py-4 px-6 border-r border-slate-200 text-center align-middle bg-white">
-                            <div className="font-medium text-slate-900 capitalize">{dayName}</div>
-                            <div className="text-sm text-slate-500">{formattedDate}</div>
-                          </td>
-                        )}
                         {idx === 0 && (
                           <td rowSpan={dayData.afternoon.length} className="py-4 px-4 border-r border-slate-200 text-center align-middle font-medium text-slate-700 bg-slate-50/50">
                             Chiều
@@ -299,7 +290,6 @@ export default function Dashboard() {
                         </td>
                       </tr>
                     );
-                    isFirstRow = false;
                   });
                 }
 
