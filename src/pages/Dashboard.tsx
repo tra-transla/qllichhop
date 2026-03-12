@@ -187,13 +187,13 @@ export default function Dashboard() {
           <h1 className="text-5xl font-black text-slate-900 uppercase tracking-tighter drop-shadow-sm">
             Thông báo: Lịch công tác
           </h1>
-          <p className="text-2xl font-bold text-indigo-900 italic bg-white/40 backdrop-blur-sm inline-block px-6 py-1 rounded-full border border-white/20">
+          <p className="text-2xl font-bold text-indigo-900 italic bg-white inline-block px-6 py-1 rounded-full border border-slate-200">
             Từ ngày {format(startDate, 'dd/MM/yyyy')} đến ngày {format(endDate, 'dd/MM/yyyy')}
           </p>
         </div>
 
         <div 
-          className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden flex-1 flex flex-col min-h-0"
+          className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -227,11 +227,11 @@ export default function Dashboard() {
                   const formattedDate = format(dateObj, 'dd/MM/yyyy');
 
                   const dateHeader = (
-                    <tr key={`header-${dateStr}`} className="bg-indigo-50/80 border-y-2 border-indigo-200">
+                    <tr key={`header-${dateStr}`} className="bg-slate-100 border-y-2 border-slate-200">
                       <td colSpan={5} className="py-4 px-8">
                         <div className="flex items-center gap-4">
                           <span className="text-3xl font-black text-indigo-950 uppercase tracking-tight">{dayName}</span>
-                          <span className="text-2xl font-bold text-indigo-700/80">({formattedDate})</span>
+                          <span className="text-2xl font-bold text-indigo-700">({formattedDate})</span>
                         </div>
                       </td>
                     </tr>
@@ -240,7 +240,7 @@ export default function Dashboard() {
                   if (!hasMorning && !hasAfternoon) {
                     return [
                       dateHeader,
-                      <tr key={`empty-${dateStr}`} className="hover:bg-white/50 transition-colors">
+                      <tr key={`empty-${dateStr}`} className="bg-white">
                         <td className="py-6 px-4 border-r border-slate-200 text-center text-slate-400 text-xl">-</td>
                         <td className="py-6 px-4 border-r border-slate-200 text-center text-slate-400 text-xl">-</td>
                         <td className="py-6 px-8 border-r border-slate-200 text-slate-400 italic text-xl">Không có lịch công tác</td>
@@ -256,9 +256,9 @@ export default function Dashboard() {
                   if (hasMorning) {
                     dayData.morning.forEach((schedule, idx) => {
                       rows.push(
-                        <tr key={`m-${schedule.id}`} className="hover:bg-white/50 transition-colors">
+                        <tr key={`m-${schedule.id}`} className="bg-white">
                           {idx === 0 && (
-                            <td rowSpan={dayData.morning.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-indigo-900 bg-indigo-50/30 text-xl">
+                            <td rowSpan={dayData.morning.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-indigo-900 bg-slate-50 text-xl">
                               Sáng
                             </td>
                           )}
@@ -284,9 +284,9 @@ export default function Dashboard() {
                   if (hasAfternoon) {
                     dayData.afternoon.forEach((schedule, idx) => {
                       rows.push(
-                        <tr key={`a-${schedule.id}`} className="hover:bg-white/50 transition-colors border-t border-slate-200">
+                        <tr key={`a-${schedule.id}`} className="bg-white border-t border-slate-200">
                           {idx === 0 && (
-                            <td rowSpan={dayData.afternoon.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-orange-900 bg-orange-50/30 text-xl">
+                            <td rowSpan={dayData.afternoon.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-orange-900 bg-slate-50 text-xl">
                               Chiều
                             </td>
                           )}
@@ -315,14 +315,14 @@ export default function Dashboard() {
           </div>
           
           {totalPages > 1 && (
-            <div className="bg-white/10 backdrop-blur-md p-2 flex justify-center items-center gap-3 text-sm font-semibold text-white/90 shrink-0 border-t border-white/10">
+            <div className="bg-slate-800 p-2 flex justify-center items-center gap-3 text-sm font-semibold text-white shrink-0 border-t border-slate-700">
               {Array.from({ length: totalPages }).map((_, idx) => (
                 <div 
                   key={idx} 
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20'}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-slate-600'}`}
                 />
               ))}
-              <span className="ml-2 uppercase tracking-widest text-[10px] opacity-80">Trang {currentPage + 1} / {totalPages}</span>
+              <span className="ml-2 uppercase tracking-widest text-[10px]">Trang {currentPage + 1} / {totalPages}</span>
             </div>
           )}
         </div>
