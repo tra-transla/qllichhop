@@ -138,7 +138,7 @@ export default function Dashboard() {
         setIsFlipping(false);
       }, 400); // Wait for fade out
 
-    }, 10000);
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [totalPages, isHovered]);
@@ -169,147 +169,163 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="space-y-6 flex flex-col h-[calc(100vh-4rem)]">
-      <div className="text-center space-y-2 shrink-0">
-        <h1 className="text-3xl font-bold text-slate-900 uppercase tracking-tight">
-          Thông báo: Lịch công tác
-        </h1>
-        <p className="text-lg font-medium text-slate-600 italic">
-          Từ ngày {format(startDate, 'dd/MM/yyyy')} đến ngày {format(endDate, 'dd/MM/yyyy')}
-        </p>
-      </div>
-
+    <div className="relative h-[calc(100vh-4rem)] flex flex-col p-6 overflow-hidden">
+      {/* Background Image with Opacity */}
       <div 
-        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div 
-          id="schedule-scroll-container" 
-          className={`overflow-y-auto flex-1 transition-opacity duration-500 ${isFlipping ? 'opacity-0' : 'opacity-100'}`}
-        >
-          <table className="w-full text-left border-collapse relative">
-            <thead className="sticky top-0 z-20 shadow-sm">
-              <tr className="bg-indigo-600">
-                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-28 text-center uppercase tracking-wider text-sm bg-indigo-600">Buổi</th>
-                <th className="py-4 px-4 font-semibold text-white border-b border-r border-indigo-700 w-28 text-center uppercase tracking-wider text-sm bg-indigo-600">Thời gian</th>
-                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 text-center uppercase tracking-wider text-sm bg-indigo-600">Nội dung công việc</th>
-                <th className="py-4 px-6 font-semibold text-white border-b border-r border-indigo-700 w-72 text-center uppercase tracking-wider text-sm bg-indigo-600">Thành phần/Lãnh đạo</th>
-                <th className="py-4 px-6 font-semibold text-white border-b w-72 text-center uppercase tracking-wider text-sm bg-indigo-600">Địa điểm</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {loading && schedules.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500">
-                    Đang tải dữ liệu...
-                  </td>
-                </tr>
-              ) : weekDates.map((dateStr) => {
-                const dayData = groupedSchedules[dateStr] || { morning: [], afternoon: [] };
-                const hasMorning = dayData.morning.length > 0;
-                const hasAfternoon = dayData.afternoon.length > 0;
-                const dateObj = new Date(dateStr);
-                const dayName = format(dateObj, 'EEEE', { locale: vi });
-                const formattedDate = format(dateObj, 'dd/MM/yyyy');
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: 'url("https://i.postimg.cc/q7kryhnB/bglt.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.5
+        }}
+      />
+      
+      {/* Content Overlay */}
+      <div className="relative z-10 flex flex-col h-full space-y-6">
+        <div className="text-center space-y-2 shrink-0">
+          <h1 className="text-5xl font-black text-slate-900 uppercase tracking-tighter drop-shadow-sm">
+            Thông báo: Lịch công tác
+          </h1>
+          <p className="text-2xl font-bold text-indigo-900 italic bg-white/40 backdrop-blur-sm inline-block px-6 py-1 rounded-full border border-white/20">
+            Từ ngày {format(startDate, 'dd/MM/yyyy')} đến ngày {format(endDate, 'dd/MM/yyyy')}
+          </p>
+        </div>
 
-                const dateHeader = (
-                  <tr key={`header-${dateStr}`} className="bg-slate-100 border-y border-slate-200">
-                    <td colSpan={5} className="py-3 px-6">
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-xl font-bold text-indigo-900 capitalize">{dayName}</span>
-                        <span className="text-lg text-slate-600">{formattedDate}</span>
-                      </div>
+        <div 
+          className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden flex-1 flex flex-col min-h-0"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div 
+            id="schedule-scroll-container" 
+            className={`overflow-y-hidden flex-1 transition-opacity duration-500 ${isFlipping ? 'opacity-0' : 'opacity-100'}`}
+          >
+            <table className="w-full text-left border-collapse table-fixed">
+              <thead className="sticky top-0 z-30 shadow-md">
+                <tr className="bg-indigo-700">
+                  <th className="py-5 px-4 font-bold text-white border-b border-r border-indigo-800 w-32 text-center uppercase tracking-widest text-lg bg-indigo-700">Buổi</th>
+                  <th className="py-5 px-4 font-bold text-white border-b border-r border-indigo-800 w-32 text-center uppercase tracking-widest text-lg bg-indigo-700">Thời gian</th>
+                  <th className="py-5 px-8 font-bold text-white border-b border-r border-indigo-800 text-center uppercase tracking-widest text-lg bg-indigo-700">Nội dung công việc</th>
+                  <th className="py-5 px-8 font-bold text-white border-b border-r border-indigo-800 w-80 text-center uppercase tracking-widest text-lg bg-indigo-700">Thành phần/Lãnh đạo</th>
+                  <th className="py-5 px-8 font-bold text-white border-b w-80 text-center uppercase tracking-widest text-lg bg-indigo-700">Địa điểm</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-300">
+                {loading && schedules.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-20 text-center text-slate-600 text-2xl font-medium">
+                      Đang tải dữ liệu...
                     </td>
                   </tr>
-                );
+                ) : weekDates.map((dateStr) => {
+                  const dayData = groupedSchedules[dateStr] || { morning: [], afternoon: [] };
+                  const hasMorning = dayData.morning.length > 0;
+                  const hasAfternoon = dayData.afternoon.length > 0;
+                  const dateObj = new Date(dateStr);
+                  const dayName = format(dateObj, 'EEEE', { locale: vi });
+                  const formattedDate = format(dateObj, 'dd/MM/yyyy');
 
-                if (!hasMorning && !hasAfternoon) {
-                  return [
-                    dateHeader,
-                    <tr key={`empty-${dateStr}`} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-4 px-4 border-r border-slate-200 text-center text-slate-400">-</td>
-                      <td className="py-4 px-4 border-r border-slate-200 text-center text-slate-400">-</td>
-                      <td className="py-4 px-6 border-r border-slate-200 text-slate-400 italic">Không có lịch công tác</td>
-                      <td className="py-4 px-6 border-r border-slate-200 text-slate-400">-</td>
-                      <td className="py-4 px-6 text-slate-400">-</td>
+                  const dateHeader = (
+                    <tr key={`header-${dateStr}`} className="bg-indigo-50/80 border-y-2 border-indigo-200">
+                      <td colSpan={5} className="py-4 px-8">
+                        <div className="flex items-center gap-4">
+                          <span className="text-3xl font-black text-indigo-950 uppercase tracking-tight">{dayName}</span>
+                          <span className="text-2xl font-bold text-indigo-700/80">({formattedDate})</span>
+                        </div>
+                      </td>
                     </tr>
-                  ];
-                }
+                  );
 
-                const rows = [dateHeader];
-
-                // Render morning schedules
-                if (hasMorning) {
-                  dayData.morning.forEach((schedule, idx) => {
-                    rows.push(
-                      <tr key={`m-${schedule.id}`} className="hover:bg-slate-50 transition-colors">
-                        {idx === 0 && (
-                          <td rowSpan={dayData.morning.length} className="py-4 px-4 border-r border-slate-200 text-center align-middle font-medium text-slate-700 bg-slate-50/50">
-                            Sáng
-                          </td>
-                        )}
-                        <td className="py-4 px-4 border-r border-slate-200 text-center font-mono text-sm text-slate-700">
-                          {schedule.time.substring(0, 5)}
-                        </td>
-                        <td className="py-4 px-6 border-r border-slate-200 text-slate-900">
-                          {schedule.content}
-                        </td>
-                        <td className="py-4 px-6 border-r border-slate-200">
-                          <div className="font-medium text-slate-900">{schedule.leader_position} <span className="font-bold">{schedule.leader_name}</span></div>
-                        </td>
-                        <td className="py-4 px-6 text-slate-700">
-                          {schedule.location}
-                        </td>
+                  if (!hasMorning && !hasAfternoon) {
+                    return [
+                      dateHeader,
+                      <tr key={`empty-${dateStr}`} className="hover:bg-white/50 transition-colors">
+                        <td className="py-6 px-4 border-r border-slate-200 text-center text-slate-400 text-xl">-</td>
+                        <td className="py-6 px-4 border-r border-slate-200 text-center text-slate-400 text-xl">-</td>
+                        <td className="py-6 px-8 border-r border-slate-200 text-slate-400 italic text-xl">Không có lịch công tác</td>
+                        <td className="py-6 px-8 border-r border-slate-200 text-slate-400 text-xl">-</td>
+                        <td className="py-6 px-8 text-slate-400 text-xl">-</td>
                       </tr>
-                    );
-                  });
-                }
+                    ];
+                  }
 
-                // Render afternoon schedules
-                if (hasAfternoon) {
-                  dayData.afternoon.forEach((schedule, idx) => {
-                    rows.push(
-                      <tr key={`a-${schedule.id}`} className="hover:bg-slate-50 transition-colors border-t border-slate-100">
-                        {idx === 0 && (
-                          <td rowSpan={dayData.afternoon.length} className="py-4 px-4 border-r border-slate-200 text-center align-middle font-medium text-slate-700 bg-slate-50/50">
-                            Chiều
+                  const rows = [dateHeader];
+
+                  // Render morning schedules
+                  if (hasMorning) {
+                    dayData.morning.forEach((schedule, idx) => {
+                      rows.push(
+                        <tr key={`m-${schedule.id}`} className="hover:bg-white/50 transition-colors">
+                          {idx === 0 && (
+                            <td rowSpan={dayData.morning.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-indigo-900 bg-indigo-50/30 text-xl">
+                              Sáng
+                            </td>
+                          )}
+                          <td className="py-6 px-4 border-r border-slate-200 text-center font-mono text-2xl font-bold text-slate-800">
+                            {schedule.time.substring(0, 5)}
                           </td>
-                        )}
-                        <td className="py-4 px-4 border-r border-slate-200 text-center font-mono text-sm text-slate-700">
-                          {schedule.time.substring(0, 5)}
-                        </td>
-                        <td className="py-4 px-6 border-r border-slate-200 text-slate-900">
-                          {schedule.content}
-                        </td>
-                        <td className="py-4 px-6 border-r border-slate-200">
-                          <div className="font-medium text-slate-900">{schedule.leader_position} <span className="font-bold">{schedule.leader_name}</span></div>
-                        </td>
-                        <td className="py-4 px-6 text-slate-700">
-                          {schedule.location}
-                        </td>
-                      </tr>
-                    );
-                  });
-                }
+                          <td className="py-6 px-8 border-r border-slate-200 text-slate-950 text-2xl font-medium leading-relaxed">
+                            {schedule.content}
+                          </td>
+                          <td className="py-6 px-8 border-r border-slate-200">
+                            <div className="text-xl text-slate-700 font-semibold mb-1">{schedule.leader_position}</div>
+                            <div className="text-2xl font-black text-indigo-900">{schedule.leader_name}</div>
+                          </td>
+                          <td className="py-6 px-8 text-slate-800 text-2xl font-bold">
+                            {schedule.location}
+                          </td>
+                        </tr>
+                      );
+                    });
+                  }
 
-                return rows;
-              })}
-            </tbody>
-          </table>
-        </div>
-        
-        {totalPages > 1 && (
-          <div className="bg-slate-50 border-t border-slate-200 p-3 flex justify-center items-center gap-2 text-sm font-medium text-slate-600 shrink-0">
-            {Array.from({ length: totalPages }).map((_, idx) => (
-              <div 
-                key={idx} 
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${idx === currentPage ? 'bg-indigo-600' : 'bg-slate-300'}`}
-              />
-            ))}
-            <span className="ml-2">Trang {currentPage + 1} / {totalPages}</span>
+                  // Render afternoon schedules
+                  if (hasAfternoon) {
+                    dayData.afternoon.forEach((schedule, idx) => {
+                      rows.push(
+                        <tr key={`a-${schedule.id}`} className="hover:bg-white/50 transition-colors border-t border-slate-200">
+                          {idx === 0 && (
+                            <td rowSpan={dayData.afternoon.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-orange-900 bg-orange-50/30 text-xl">
+                              Chiều
+                            </td>
+                          )}
+                          <td className="py-6 px-4 border-r border-slate-200 text-center font-mono text-2xl font-bold text-slate-800">
+                            {schedule.time.substring(0, 5)}
+                          </td>
+                          <td className="py-6 px-8 border-r border-slate-200 text-slate-950 text-2xl font-medium leading-relaxed">
+                            {schedule.content}
+                          </td>
+                          <td className="py-6 px-8 border-r border-slate-200">
+                            <div className="text-xl text-slate-700 font-semibold mb-1">{schedule.leader_position}</div>
+                            <div className="text-2xl font-black text-indigo-900">{schedule.leader_name}</div>
+                          </td>
+                          <td className="py-6 px-8 text-slate-800 text-2xl font-bold">
+                            {schedule.location}
+                          </td>
+                        </tr>
+                      );
+                    });
+                  }
+
+                  return rows;
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
+          
+          {totalPages > 1 && (
+            <div className="bg-white/10 backdrop-blur-md p-2 flex justify-center items-center gap-3 text-sm font-semibold text-white/90 shrink-0 border-t border-white/10">
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <div 
+                  key={idx} 
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20'}`}
+                />
+              ))}
+              <span className="ml-2 uppercase tracking-widest text-[10px] opacity-80">Trang {currentPage + 1} / {totalPages}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
