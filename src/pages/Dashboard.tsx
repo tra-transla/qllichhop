@@ -182,18 +182,33 @@ export default function Dashboard() {
       />
       
       {/* Content Overlay */}
-      <div className="relative z-10 flex flex-col h-full space-y-6">
-        <div className="text-center space-y-2 shrink-0">
-          <h1 className="text-5xl font-black text-slate-900 uppercase tracking-tighter drop-shadow-sm">
-            Thông báo: Lịch công tác
-          </h1>
-          <p className="text-2xl font-bold text-indigo-900 italic bg-white inline-block px-6 py-1 rounded-full border border-slate-200">
-            Từ ngày {format(startDate, 'dd/MM/yyyy')} đến ngày {format(endDate, 'dd/MM/yyyy')}
-          </p>
+      <div className="relative z-10 flex flex-col h-full space-y-4">
+        <div className="relative w-full shrink-0">
+          {/* Logo positioned above the "Thời gian" column area */}
+          <div className="absolute left-0 top-0 h-full flex items-center pointer-events-none">
+            <div className="w-28"></div> {/* Space for "Buổi" column */}
+            <div className="w-28 flex justify-center">
+              <img 
+                src="https://i.postimg.cc/Ssx85WTT/Quoc-Huy-Viet-Nam-Chuan.png" 
+                alt="Logo" 
+                className="w-[70px] h-[70px] object-contain drop-shadow-md"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          </div>
+          
+          <div className="text-center space-y-1 flex flex-col items-center">
+            <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter drop-shadow-sm">
+              Thông báo: Lịch công tác
+            </h1>
+            <p className="text-xl font-bold text-indigo-900 italic bg-white/40 backdrop-blur-sm inline-block px-5 py-0.5 rounded-full border border-white/20">
+              Từ ngày {format(startDate, 'dd/MM/yyyy')} đến ngày {format(endDate, 'dd/MM/yyyy')}
+            </p>
+          </div>
         </div>
 
         <div 
-          className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0"
+          className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-white/50 overflow-hidden flex-1 flex flex-col min-h-0"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -204,17 +219,17 @@ export default function Dashboard() {
             <table className="w-full text-left border-collapse table-fixed">
               <thead className="sticky top-0 z-30 shadow-md">
                 <tr className="bg-indigo-700">
-                  <th className="py-5 px-4 font-bold text-white border-b border-r border-indigo-800 w-32 text-center uppercase tracking-widest text-lg bg-indigo-700">Buổi</th>
-                  <th className="py-5 px-4 font-bold text-white border-b border-r border-indigo-800 w-32 text-center uppercase tracking-widest text-lg bg-indigo-700">Thời gian</th>
-                  <th className="py-5 px-8 font-bold text-white border-b border-r border-indigo-800 text-center uppercase tracking-widest text-lg bg-indigo-700">Nội dung công việc</th>
-                  <th className="py-5 px-8 font-bold text-white border-b border-r border-indigo-800 w-80 text-center uppercase tracking-widest text-lg bg-indigo-700">Thành phần/Lãnh đạo</th>
-                  <th className="py-5 px-8 font-bold text-white border-b w-80 text-center uppercase tracking-widest text-lg bg-indigo-700">Địa điểm</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-indigo-800 w-28 text-center uppercase tracking-widest text-base bg-indigo-700">Buổi</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-indigo-800 w-28 text-center uppercase tracking-widest text-base bg-indigo-700">Thời gian</th>
+                  <th className="py-3 px-6 font-bold text-white border-b border-r border-indigo-800 text-center uppercase tracking-widest text-base bg-indigo-700">Nội dung công việc</th>
+                  <th className="py-3 px-6 font-bold text-white border-b border-r border-indigo-800 w-72 text-center uppercase tracking-widest text-base bg-indigo-700">Thành phần/Lãnh đạo</th>
+                  <th className="py-3 px-6 font-bold text-white border-b w-72 text-center uppercase tracking-widest text-base bg-indigo-700">Địa điểm</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-300">
                 {loading && schedules.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-20 text-center text-slate-600 text-2xl font-medium">
+                    <td colSpan={5} className="py-16 text-center text-slate-600 text-xl font-medium">
                       Đang tải dữ liệu...
                     </td>
                   </tr>
@@ -227,11 +242,11 @@ export default function Dashboard() {
                   const formattedDate = format(dateObj, 'dd/MM/yyyy');
 
                   const dateHeader = (
-                    <tr key={`header-${dateStr}`} className="bg-slate-100 border-y-2 border-slate-200">
-                      <td colSpan={5} className="py-4 px-8">
-                        <div className="flex items-center gap-4">
-                          <span className="text-3xl font-black text-indigo-950 uppercase tracking-tight">{dayName}</span>
-                          <span className="text-2xl font-bold text-indigo-700">({formattedDate})</span>
+                    <tr key={`header-${dateStr}`} className="bg-indigo-50/80 border-y-2 border-indigo-200">
+                      <td colSpan={5} className="py-2 px-6">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl font-black text-indigo-950 uppercase tracking-tight">{dayName}</span>
+                          <span className="text-xl font-bold text-indigo-700/80">({formattedDate})</span>
                         </div>
                       </td>
                     </tr>
@@ -240,12 +255,12 @@ export default function Dashboard() {
                   if (!hasMorning && !hasAfternoon) {
                     return [
                       dateHeader,
-                      <tr key={`empty-${dateStr}`} className="bg-white">
-                        <td className="py-6 px-4 border-r border-slate-200 text-center text-slate-400 text-xl">-</td>
-                        <td className="py-6 px-4 border-r border-slate-200 text-center text-slate-400 text-xl">-</td>
-                        <td className="py-6 px-8 border-r border-slate-200 text-slate-400 italic text-xl">Không có lịch công tác</td>
-                        <td className="py-6 px-8 border-r border-slate-200 text-slate-400 text-xl">-</td>
-                        <td className="py-6 px-8 text-slate-400 text-xl">-</td>
+                      <tr key={`empty-${dateStr}`} className="hover:bg-white/50 transition-colors">
+                        <td className="py-3 px-4 border-r border-slate-200 text-center text-slate-400 text-lg">-</td>
+                        <td className="py-3 px-4 border-r border-slate-200 text-center text-slate-400 text-lg">-</td>
+                        <td className="py-3 px-6 border-r border-slate-200 text-slate-400 italic text-lg">Không có lịch công tác</td>
+                        <td className="py-3 px-6 border-r border-slate-200 text-slate-400 text-lg">-</td>
+                        <td className="py-3 px-6 text-slate-400 text-lg">-</td>
                       </tr>
                     ];
                   }
@@ -256,23 +271,23 @@ export default function Dashboard() {
                   if (hasMorning) {
                     dayData.morning.forEach((schedule, idx) => {
                       rows.push(
-                        <tr key={`m-${schedule.id}`} className="bg-white">
+                        <tr key={`m-${schedule.id}`} className="hover:bg-white/50 transition-colors">
                           {idx === 0 && (
-                            <td rowSpan={dayData.morning.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-indigo-900 bg-slate-50 text-xl">
+                            <td rowSpan={dayData.morning.length} className="py-3 px-4 border-r border-slate-200 text-center align-middle font-bold text-indigo-900 bg-indigo-50/30 text-lg">
                               Sáng
                             </td>
                           )}
-                          <td className="py-6 px-4 border-r border-slate-200 text-center font-mono text-2xl font-bold text-slate-800">
+                          <td className="py-3 px-4 border-r border-slate-200 text-center font-mono text-xl font-bold text-slate-800">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-6 px-8 border-r border-slate-200 text-slate-950 text-2xl font-medium leading-relaxed">
+                          <td className="py-3 px-6 border-r border-slate-200 text-slate-950 text-xl font-medium leading-relaxed">
                             {schedule.content}
                           </td>
-                          <td className="py-6 px-8 border-r border-slate-200">
-                            <div className="text-xl text-slate-700 font-semibold mb-1">{schedule.leader_position}</div>
-                            <div className="text-2xl font-black text-indigo-900">{schedule.leader_name}</div>
+                          <td className="py-3 px-6 border-r border-slate-200">
+                            <div className="text-lg text-slate-700 font-semibold mb-0.5">{schedule.leader_position}</div>
+                            <div className="text-xl font-black text-indigo-900">{schedule.leader_name}</div>
                           </td>
-                          <td className="py-6 px-8 text-slate-800 text-2xl font-bold">
+                          <td className="py-3 px-6 text-slate-800 text-xl font-bold">
                             {schedule.location}
                           </td>
                         </tr>
@@ -284,23 +299,23 @@ export default function Dashboard() {
                   if (hasAfternoon) {
                     dayData.afternoon.forEach((schedule, idx) => {
                       rows.push(
-                        <tr key={`a-${schedule.id}`} className="bg-white border-t border-slate-200">
+                        <tr key={`a-${schedule.id}`} className="hover:bg-white/50 transition-colors border-t border-slate-200">
                           {idx === 0 && (
-                            <td rowSpan={dayData.afternoon.length} className="py-6 px-4 border-r border-slate-200 text-center align-middle font-bold text-orange-900 bg-slate-50 text-xl">
+                            <td rowSpan={dayData.afternoon.length} className="py-3 px-4 border-r border-slate-200 text-center align-middle font-bold text-orange-900 bg-orange-50/30 text-lg">
                               Chiều
                             </td>
                           )}
-                          <td className="py-6 px-4 border-r border-slate-200 text-center font-mono text-2xl font-bold text-slate-800">
+                          <td className="py-3 px-4 border-r border-slate-200 text-center font-mono text-xl font-bold text-slate-800">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-6 px-8 border-r border-slate-200 text-slate-950 text-2xl font-medium leading-relaxed">
+                          <td className="py-3 px-6 border-r border-slate-200 text-slate-950 text-xl font-medium leading-relaxed">
                             {schedule.content}
                           </td>
-                          <td className="py-6 px-8 border-r border-slate-200">
-                            <div className="text-xl text-slate-700 font-semibold mb-1">{schedule.leader_position}</div>
-                            <div className="text-2xl font-black text-indigo-900">{schedule.leader_name}</div>
+                          <td className="py-3 px-6 border-r border-slate-200">
+                            <div className="text-lg text-slate-700 font-semibold mb-0.5">{schedule.leader_position}</div>
+                            <div className="text-xl font-black text-indigo-900">{schedule.leader_name}</div>
                           </td>
-                          <td className="py-6 px-8 text-slate-800 text-2xl font-bold">
+                          <td className="py-3 px-6 text-slate-800 text-xl font-bold">
                             {schedule.location}
                           </td>
                         </tr>
@@ -315,14 +330,14 @@ export default function Dashboard() {
           </div>
           
           {totalPages > 1 && (
-            <div className="bg-slate-800 p-2 flex justify-center items-center gap-3 text-sm font-semibold text-white shrink-0 border-t border-slate-700">
+            <div className="bg-white/10 backdrop-blur-md p-2 flex justify-center items-center gap-3 text-sm font-semibold text-white/90 shrink-0 border-t border-white/10">
               {Array.from({ length: totalPages }).map((_, idx) => (
                 <div 
                   key={idx} 
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-slate-600'}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20'}`}
                 />
               ))}
-              <span className="ml-2 uppercase tracking-widest text-[10px]">Trang {currentPage + 1} / {totalPages}</span>
+              <span className="ml-2 uppercase tracking-widest text-[10px] opacity-80">Trang {currentPage + 1} / {totalPages}</span>
             </div>
           )}
         </div>
