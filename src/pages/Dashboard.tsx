@@ -139,7 +139,7 @@ export default function Dashboard() {
         setIsFlipping(false);
       }, 400); // Wait for fade out
 
-    }, 20000);
+    }, 20000); // 20 seconds interval
 
     return () => clearInterval(interval);
   }, [totalPages, isHovered]);
