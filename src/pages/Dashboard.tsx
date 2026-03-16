@@ -148,6 +148,75 @@ export default function Dashboard() {
   const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
   const today = () => setCurrentDate(new Date());
 
+  // TV Remote Control Support
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch(e.keyCode) {
+        case 37: // Left
+          prevWeek();
+          break;
+        case 39: // Right
+          nextWeek();
+          break;
+        case 38: // Up
+          if (totalPages > 1) {
+            setCurrentPage(prev => (prev - 1 + totalPages) % totalPages);
+          }
+          break;
+        case 40: // Down
+          if (totalPages > 1) {
+            setCurrentPage(prev => (prev + 1) % totalPages);
+          }
+          break;
+        case 13: // Enter
+          today();
+          break;
+        case 10009: // Samsung Return/Back
+          // Handle back button if needed, e.g., go to home or exit
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [totalPages]);
+
+  // Hide cursor for TV mode after inactivity
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    const handleMouseMove = () => {
+      document.body.style.cursor = 'default';
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        document.body.style.cursor = 'none';
+      }, 3000);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    handleMouseMove(); // Initial hide
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.body.style.cursor = 'default';
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  // Sync scroll position when currentPage changes manually via remote
+  useEffect(() => {
+    const container = document.getElementById('schedule-scroll-container');
+    if (container) {
+      const header = container.querySelector('thead');
+      const headerHeight = header ? header.clientHeight : 0;
+      const viewHeight = container.clientHeight - headerHeight;
+      
+      container.scrollTo({ 
+        top: currentPage * viewHeight, 
+        behavior: 'smooth' 
+      });
+    }
+  }, [currentPage]);
+
   // Group schedules by date and then by morning/afternoon
   const groupedSchedules = schedules.reduce((acc, schedule) => {
     if (!acc[schedule.date]) {
