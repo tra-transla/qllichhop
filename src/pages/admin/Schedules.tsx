@@ -13,6 +13,7 @@ interface Schedule {
   location: string;
   leader_name: string;
   leader_position: string;
+  host?: string;
 }
 
 interface Leader {
@@ -41,7 +42,8 @@ export default function Schedules() {
     time: '08:00',
     content: '',
     leader_id: '',
-    location: ''
+    location: '',
+    host: ''
   });
 
   const fetchData = async () => {
@@ -145,7 +147,8 @@ export default function Schedules() {
       time: schedule.time.substring(0, 5), // Ensure HH:mm format
       content: schedule.content,
       leader_id: schedule.leader_id.toString(),
-      location: schedule.location || ''
+      location: schedule.location || '',
+      host: schedule.host || ''
     });
     setIsModalOpen(true);
   };
@@ -311,6 +314,7 @@ export default function Schedules() {
               <th className="py-3 px-6 font-semibold text-slate-900 w-32">Ngày</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-24">Giờ</th>
               <th className="py-3 px-6 font-semibold text-slate-900">Nội dung</th>
+              <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chủ trì</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Đồng chí</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Địa điểm</th>
               <th className="py-3 px-6 font-semibold text-slate-900 text-right w-24">Thao tác</th>
@@ -319,11 +323,11 @@ export default function Schedules() {
           <tbody className="divide-y divide-slate-200">
             {loading ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-500">Đang tải dữ liệu...</td>
+                <td colSpan={7} className="py-8 text-center text-slate-500">Đang tải dữ liệu...</td>
               </tr>
             ) : schedules.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-500">Chưa có lịch công tác nào</td>
+                <td colSpan={7} className="py-8 text-center text-slate-500">Chưa có lịch công tác nào</td>
               </tr>
             ) : (
               schedules.map((schedule) => (
@@ -333,6 +337,7 @@ export default function Schedules() {
                   </td>
                   <td className="py-3 px-6 text-slate-600 font-mono text-sm">{schedule.time}</td>
                   <td className="py-3 px-6 text-slate-900">{schedule.content}</td>
+                  <td className="py-3 px-6 text-slate-900 font-medium">{schedule.host || '-'}</td>
                   <td className="py-3 px-6 text-slate-600">
                     <span className="font-medium text-slate-900">{schedule.leader_position}</span> {schedule.leader_name}
                   </td>
@@ -415,6 +420,28 @@ export default function Schedules() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Chủ trì</label>
+                  <select
+                    value={formData.host}
+                    onChange={(e) => setFormData({ ...formData, host: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">-- Tự nhập hoặc chọn từ danh sách --</option>
+                    {leaders.map(leader => (
+                      <option key={`host-${leader.id}`} value={`${leader.position} ${leader.name}`}>
+                        {leader.position} {leader.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={formData.host}
+                    onChange={(e) => setFormData({ ...formData, host: e.target.value })}
+                    className="mt-2 w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Hoặc tự nhập tên người chủ trì..."
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Đồng chí (Lãnh đạo) *</label>
                   <select
                     required
@@ -430,17 +457,18 @@ export default function Schedules() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Địa điểm *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="VD: Phòng họp BCH"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Địa điểm *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="VD: Phòng họp BCH"
+                />
               </div>
 
               <div className="pt-4 flex justify-end gap-3">
