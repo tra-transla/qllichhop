@@ -41,14 +41,14 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
       {isAdmin ? (
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <header className="bg-white border-b border-[#e2e8f0] sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex">
-                <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900 text-lg">
-                  <Calendar className="w-6 h-6 text-indigo-600" />
+                <Link to="/" className="flex items-center gap-2 font-semibold text-[#0f172a] text-lg">
+                  <Calendar className="w-6 h-6 text-[#4f46e5]" />
                   <span>Hệ thống quản lý lịch công tác tuần</span>
                 </Link>
               </div>
@@ -57,7 +57,7 @@ export default function Layout() {
                   to="/"
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    !isAdmin ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100"
+                    !isAdmin ? "bg-[#eef2ff] text-[#4338ca]" : "text-[#475569] hover:bg-[#f1f5f9]"
                   )}
                 >
                   Dashboard
@@ -66,14 +66,14 @@ export default function Layout() {
                   to="/admin"
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isAdmin ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100"
+                    isAdmin ? "bg-[#eef2ff] text-[#4338ca]" : "text-[#475569] hover:bg-[#f1f5f9]"
                   )}
                 >
                   Quản lý
                 </Link>
                 <button
                   onClick={toggleFullscreen}
-                  className="p-2 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                  className="p-2 text-[#475569] hover:bg-[#f1f5f9] rounded-md transition-colors"
                   title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
                 >
                   {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
@@ -81,7 +81,7 @@ export default function Layout() {
                 {session && (
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[#dc2626] hover:bg-[#fef2f2] transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Đăng xuất
@@ -95,14 +95,14 @@ export default function Layout() {
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
           <button
             onClick={toggleFullscreen}
-            className="p-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 hover:bg-white transition-all flex items-center justify-center"
+            className="p-2 bg-white/80 backdrop-blur-sm border border-[#e2e8f0] rounded-full shadow-sm text-[#94a3b8] hover:text-[#4f46e5] hover:bg-white transition-all flex items-center justify-center"
             title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
           >
             {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
           </button>
           <Link
             to="/admin"
-            className="p-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 hover:bg-white transition-all flex items-center justify-center"
+            className="p-2 bg-white/80 backdrop-blur-sm border border-[#e2e8f0] rounded-full shadow-sm text-[#94a3b8] hover:text-[#4f46e5] hover:bg-white transition-all flex items-center justify-center"
             title="Quản lý"
           >
             <Settings className="w-5 h-5" />
@@ -111,7 +111,7 @@ export default function Layout() {
       )}
 
       {isAdmin && (
-        <div className="bg-white border-b border-slate-200">
+        <div className="bg-white border-b border-[#e2e8f0]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex space-x-8">
               <Link
@@ -119,8 +119,8 @@ export default function Layout() {
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2",
                   location.pathname === '/admin/schedules'
-                    ? "border-indigo-500 text-indigo-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    ? "border-[#6366f1] text-[#4f46e5]"
+                    : "border-transparent text-[#64748b] hover:text-[#334155] hover:border-[#cbd5e1]"
                 )}
               >
                 <LayoutDashboard className="w-4 h-4" />
@@ -131,8 +131,8 @@ export default function Layout() {
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2",
                   location.pathname === '/admin/leaders'
-                    ? "border-indigo-500 text-indigo-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    ? "border-[#6366f1] text-[#4f46e5]"
+                    : "border-transparent text-[#64748b] hover:text-[#334155] hover:border-[#cbd5e1]"
                 )}
               >
                 <Users className="w-4 h-4" />
@@ -143,8 +143,8 @@ export default function Layout() {
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2",
                   location.pathname === '/admin/users'
-                    ? "border-indigo-500 text-indigo-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    ? "border-[#6366f1] text-[#4f46e5]"
+                    : "border-transparent text-[#64748b] hover:text-[#334155] hover:border-[#cbd5e1]"
                 )}
               >
                 <Shield className="w-4 h-4" />

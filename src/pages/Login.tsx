@@ -38,37 +38,37 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="w-12 h-12 bg-[#4f46e5] rounded-xl flex items-center justify-center shadow-sm">
             <Lock className="w-6 h-6 text-white" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-slate-900">
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[#0f172a]">
           Đăng nhập hệ thống
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
+        <p className="mt-2 text-center text-sm text-[#475569]">
           Dành cho quản trị viên và người cập nhật lịch
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-xl sm:px-10 border border-slate-200">
+        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-xl sm:px-10 border border-[#e2e8f0]">
           <form className="space-y-6" onSubmit={handleLogin}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-[#fef2f2] border border-[#fecaca] text-[#dc2626] px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="username" className="block text-sm font-medium text-[#334155]">
                 Tên đăng nhập
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-400" />
+                  <User className="h-5 w-5 text-[#94a3b8]" />
                 </div>
                 <input
                   id="username"
@@ -78,19 +78,19 @@ export default function Login() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-10 rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2.5 border"
+                  className="block w-full pl-10 rounded-lg border-[#cbd5e1] focus:border-[#6366f1] focus:ring-[#6366f1] sm:text-sm py-2.5 border"
                   placeholder="Ví dụ: admin"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="password" className="block text-sm font-medium text-[#334155]">
                 Mật khẩu
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
+                  <Lock className="h-5 w-5 text-[#94a3b8]" />
                 </div>
                 <input
                   id="password"
@@ -100,7 +100,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2.5 border"
+                  className="block w-full pl-10 rounded-lg border-[#cbd5e1] focus:border-[#6366f1] focus:ring-[#6366f1] sm:text-sm py-2.5 border"
                   placeholder="••••••••"
                 />
               </div>
@@ -110,7 +110,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full justify-center items-center gap-2 rounded-lg border border-transparent bg-indigo-600 py-2.5 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex w-full justify-center items-center gap-2 rounded-lg border border-transparent bg-[#4f46e5] py-2.5 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#4338ca] focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (
                   <>
