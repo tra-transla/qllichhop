@@ -1,8 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock as ClockIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+
+function Clock() {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-end text-[#7f1d1d] font-bold">
+      <div className="flex items-center gap-2 text-3xl sm:text-4xl tracking-tighter">
+        <ClockIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+        <span>{format(time, 'HH:mm:ss')}</span>
+      </div>
+      <div className="text-sm sm:text-base opacity-80 uppercase">
+        {format(time, 'eeee, dd/MM/yyyy', { locale: vi })}
+      </div>
+    </div>
+  );
+}
 
 interface Schedule {
   id: number;
@@ -21,6 +42,7 @@ interface Schedule {
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [todayStr, setTodayStr] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,19 +87,36 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    const updateData = () => {
-      const now = new Date();
-      setCurrentDate(now);
-      const start = startOfWeek(now, { weekStartsOn: 1 });
-      const end = endOfWeek(now, { weekStartsOn: 1 });
+    const fetchCurrentSchedules = () => {
+      const start = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const end = endOfWeek(currentDate, { weekStartsOn: 1 });
       fetchSchedules(start, end);
     };
 
-    updateData();
-    // Poll every 10 seconds for real-time updates and date changes
-    const interval = setInterval(updateData, 10000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchCurrentSchedules();
+    // Poll every 10 seconds for real-time updates
+    const interval = setInterval(fetchCurrentSchedules, 10000);
+    
+    // Update todayStr if day changes
+    const todayInterval = setInterval(() => {
+      const now = new Date();
+      const currentToday = format(now, 'yyyy-MM-dd');
+      if (currentToday !== todayStr) {
+        setTodayStr(currentToday);
+      }
+    }, 60000);
+
+    // Full page reload every 24 hours to clear memory on TV boxes
+    const reloadInterval = setInterval(() => {
+      window.location.reload();
+    }, 24 * 60 * 60 * 1000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(todayInterval);
+      clearInterval(reloadInterval);
+    };
+  }, [currentDate, todayStr]);
 
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
@@ -143,7 +182,7 @@ export default function Dashboard() {
       window.removeEventListener('resize', calculatePages);
       resizeObserver.disconnect();
     };
-  }, [schedules]);
+  }, [schedules, todayStr, currentDate]);
 
   useEffect(() => {
     if (currentPage >= totalPages) {
@@ -187,28 +226,40 @@ export default function Dashboard() {
   // TV Remote Control Support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Log key code for debugging on different TV boxes
+      console.log('Key pressed:', e.keyCode, e.key);
+
       switch(e.keyCode) {
         case 37: // Left
+        case 21: // Android Left
           prevWeek();
           break;
         case 39: // Right
+        case 22: // Android Right
           nextWeek();
           break;
         case 38: // Up
+        case 19: // Android Up
           if (totalPages > 1) {
             setCurrentPage(prev => (prev - 1 + totalPages) % totalPages);
           }
           break;
         case 40: // Down
+        case 20: // Android Down
           if (totalPages > 1) {
             setCurrentPage(prev => (prev + 1) % totalPages);
           }
           break;
         case 13: // Enter
+        case 23: // Android Center/Enter
+        case 66: // Android B (Enter)
           today();
           break;
         case 10009: // Samsung Return/Back
-          // Handle back button if needed, e.g., go to home or exit
+        case 4:     // Android Back
+        case 27:    // ESC
+          // Prevent default back behavior if needed
+          // e.g., if in a modal, close it. Here we just log.
           break;
       }
     };
@@ -252,15 +303,15 @@ export default function Dashboard() {
     return acc;
   }, {} as Record<string, { morning: Schedule[], afternoon: Schedule[] }>);
 
-  // Generate array of dates for the current week
+  // Generate array of dates for the current week, filtering out past days
   const weekDates = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(startDate);
     d.setDate(d.getDate() + i);
     return format(d, 'yyyy-MM-dd');
-  });
+  }).filter(date => date >= todayStr);
 
   return (
-    <div className="relative h-screen w-full flex flex-col p-4 sm:p-6 overflow-hidden">
+    <div className="relative h-screen w-full flex flex-col p-6 sm:p-10 overflow-hidden select-none">
       {/* Background Image with Opacity */}
       <div 
         className="absolute inset-0 z-0"
@@ -298,9 +349,12 @@ export default function Dashboard() {
           </div>
 
           {/* Organization info on the right */}
-          <div className="flex-1 text-[#7f1d1d] font-bold uppercase leading-tight text-center drop-shadow-sm min-w-0">
-            <p className="text-sm sm:text-xl mb-0 sm:mb-1">Tỉnh uỷ Sơn La</p>
-            <p className="text-lg sm:text-3xl">Ban Tổ chức</p>
+          <div className="flex-1 flex flex-col items-end gap-2 min-w-0">
+            <div className="text-[#7f1d1d] font-bold uppercase leading-tight text-right drop-shadow-sm">
+              <p className="text-sm sm:text-xl mb-0 sm:mb-1">Tỉnh uỷ Sơn La</p>
+              <p className="text-lg sm:text-3xl">Ban Tổ chức</p>
+            </div>
+            <Clock />
           </div>
         </div>
 
@@ -464,6 +518,22 @@ export default function Dashboard() {
               <span className="ml-2 uppercase tracking-widest text-[10px] opacity-80">Trang {currentPage + 1} / {totalPages}</span>
             </div>
           )}
+        </div>
+
+        {/* TV Remote Navigation Guide */}
+        <div className="shrink-0 flex justify-center items-center gap-8 py-2 bg-black/20 backdrop-blur-sm rounded-full border border-white/10 text-white/60 text-xs sm:text-sm font-medium uppercase tracking-widest">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white">← / →</span>
+            <span>Tuần trước / sau</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white">↑ / ↓</span>
+            <span>Chuyển trang</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white">OK / ENTER</span>
+            <span>Về hôm nay</span>
+          </div>
         </div>
       </div>
     </div>
