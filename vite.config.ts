@@ -1,22 +1,12 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import legacy from '@vitejs/plugin-legacy';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    plugins: [
-      react(), 
-      legacy({
-        targets: ['defaults', 'not IE 11', 'chrome >= 60'],
-      }),
-    ],
-    build: {
-      target: ['chrome61', 'es2015'],
-      cssTarget: 'chrome61',
-      minify: 'terser',
-    },
+    plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },

@@ -24,24 +24,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Safety timeout to prevent permanent white screen on older browsers
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.warn('Auth initialization timed out (10s), proceeding to render...');
-        setLoading(false);
-      }
-    }, 10000);
-
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      clearTimeout(timeoutId);
-    }).catch(err => {
-      console.error('Auth session error:', err);
-      setLoading(false);
-      clearTimeout(timeoutId);
     });
 
     // Listen for auth changes
@@ -51,10 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeoutId);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
