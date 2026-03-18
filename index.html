@@ -3,10 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Polyfill for globalThis (Chrome < 71)
+      (function() {
+        if (typeof globalThis === 'undefined') {
+          if (typeof self !== 'undefined') self.globalThis = self;
+          else if (typeof window !== 'undefined') window.globalThis = window;
+          else if (typeof global !== 'undefined') global.globalThis = global;
+        }
+      })();
+
+      // Polyfill for Object.fromEntries (Chrome < 73)
+      if (!Object.fromEntries) {
+        Object.fromEntries = function(entries) {
+          var obj = {};
+          for (var pair of entries) {
+            if (Object(pair) !== pair) { throw new TypeError('iterable for fromEntries should yield objects'); }
+            var key = pair[0];
+            var value = pair[1];
+            obj[key] = value;
+          }
+          return obj;
+        };
+      }
+    </script>
     <title>Hệ thống quản lý lịch công tác tuần</title>
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        var div = document.createElement('div');
+        div.style.position = 'fixed';
+        div.style.top = '0';
+        div.style.left = '0';
+        div.style.width = '100%';
+        div.style.padding = '20px';
+        div.style.background = 'red';
+        div.style.color = 'white';
+        div.style.zIndex = '9999';
+        div.style.fontSize = '14px';
+        div.innerHTML = '<b>Lỗi hệ thống:</b> ' + msg + '<br><small>' + url + ' L:' + line + '</small>';
+        document.body.appendChild(div);
+        return false;
+      };
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #7f1d1d; background-color: #fef2f2;">
+        <div style="text-align: center;">
+          <h2 style="margin-bottom: 10px;">Đang khởi động hệ thống...</h2>
+          <p style="opacity: 0.7;">Vui lòng đợi trong giây lát.</p>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

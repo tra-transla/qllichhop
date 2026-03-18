@@ -155,7 +155,7 @@ export default function Layout() {
         </div>
       )}
 
-      <main className={cn("flex-1 w-full mx-auto", isAdmin ? "px-4 sm:px-6 lg:px-8 py-8" : "px-2 sm:px-4 py-6")}>
+      <main className={cn("flex-1 w-full mx-auto", isAdmin ? "px-4 sm:px-6 lg:px-8 py-8" : "p-0")}>
         <Outlet />
       </main>
     </div>
