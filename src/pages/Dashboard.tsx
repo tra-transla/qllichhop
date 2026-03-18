@@ -168,19 +168,19 @@ export default function Dashboard() {
     const timeoutId = setTimeout(calculatePages, 1000);
     
     const container = document.getElementById('schedule-scroll-container');
-    const resizeObserver = new ResizeObserver(() => {
-      calculatePages();
-    });
-    
-    if (container) {
+    let resizeObserver: ResizeObserver | null = null;
+    if (container && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        calculatePages();
+      });
       resizeObserver.observe(container);
     }
-
+    
     window.addEventListener('resize', calculatePages);
     return () => {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', calculatePages);
-      resizeObserver.disconnect();
+      if (resizeObserver) resizeObserver.disconnect();
     };
   }, [schedules, todayStr, currentDate]);
 
