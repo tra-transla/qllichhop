@@ -99,6 +99,7 @@ export default function Dashboard() {
     const fetchCurrentSchedules = () => {
       const start = startOfWeek(currentDate, { weekStartsOn: 1 });
       const end = endOfWeek(currentDate, { weekStartsOn: 1 });
+      console.log('Dashboard: Fetching schedules for week starting:', start.toISOString());
       fetchSchedules(start, end);
     };
 
@@ -140,10 +141,10 @@ export default function Dashboard() {
   useEffect(() => {
     const calculatePages = () => {
       const container = document.getElementById('schedule-scroll-container');
-      if (container) {
-        const header = container.querySelector('thead');
-        const headerHeight = header ? header.getBoundingClientRect().height : 0;
-        const viewHeight = container.clientHeight - headerHeight;
+      const header = document.getElementById('fixed-schedule-header');
+      if (container && header) {
+        const headerHeight = header.getBoundingClientRect().height;
+        const viewHeight = container.clientHeight; // container is already the view area
         
         if (viewHeight > 0) {
           const rows = Array.from(container.querySelectorAll('tbody tr'));
@@ -228,8 +229,8 @@ export default function Dashboard() {
     }
   }, [currentPage, pageOffsets, isFlipping]);
 
-  const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
-  const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
+  const nextWeek = () => setCurrentDate(prev => addWeeks(prev, 1));
+  const prevWeek = () => setCurrentDate(prev => subWeeks(prev, 1));
   const today = () => setCurrentDate(new Date());
 
   // TV Remote Control Support
@@ -275,7 +276,7 @@ export default function Dashboard() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [totalPages]);
+  }, [totalPages, currentPage]);
 
   // Hide cursor for TV mode after inactivity
   useEffect(() => {
@@ -368,28 +369,54 @@ export default function Dashboard() {
         </div>
 
         <div 
-          className="bg-transparent rounded-xl shadow-2xl border border-[#fca5a5] overflow-hidden flex-1 flex flex-col min-h-0"
+          className="bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl border border-[#fca5a5] overflow-hidden flex-1 flex flex-col min-h-0"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
+          {/* Fixed Header Table */}
+          <table id="fixed-schedule-header" className="w-full text-left border-collapse table-fixed shrink-0 z-30 shadow-md m-0" style={{ backgroundColor: '#8b0000' }}>
+            <colgroup>
+              <col className="w-[8%]" />
+              <col className="w-[6%]" />
+              <col className="w-[8%]" />
+              <col className="w-[25%]" />
+              <col className="w-[13%]" />
+              <col className="w-[10%]" />
+              <col className="w-[10%]" />
+              <col className="w-[10%]" />
+              <col className="w-[10%]" />
+            </colgroup>
+            <thead style={{ backgroundColor: '#8b0000' }}>
+              <tr style={{ backgroundColor: '#8b0000' }}>
+                <th className="py-4 px-2 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Thứ</th>
+                <th className="py-4 px-2 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Buổi</th>
+                <th className="py-4 px-2 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Thời gian</th>
+                <th className="py-4 px-4 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Nội dung công việc</th>
+                <th className="py-4 px-3 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Chương trình/Văn bản</th>
+                <th className="py-4 px-4 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Chủ trì</th>
+                <th className="py-4 px-4 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Thành phần</th>
+                <th className="py-4 px-4 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Chuẩn bị</th>
+                <th className="py-4 px-4 font-bold text-white border-b border-[#7f1d1d] text-center uppercase tracking-wider text-xs sm:text-sm" style={{ backgroundColor: '#8b0000', color: '#ffffff' }}>Địa điểm</th>
+              </tr>
+            </thead>
+          </table>
+
           <div 
             id="schedule-scroll-container" 
             className={`overflow-y-hidden flex-1 transition-opacity duration-500 ${isFlipping ? 'opacity-0' : 'opacity-100'}`}
           >
-            <table className="w-full text-left border-collapse table-fixed">
-              <thead className="sticky top-0 z-30 shadow-md">
-                <tr className="bg-[#8b0000]">
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 sm:w-32 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thứ</th>
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-16 sm:w-24 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Buổi</th>
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-16 sm:w-24 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thời gian</th>
-                  <th className="py-3 px-5 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Nội dung công việc</th>
-                  <th className="py-3 px-3 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chương trình/Văn bản</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chủ trì</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thành phần</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chuẩn bị</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Địa điểm</th>
-                </tr>
-              </thead>
+            <table className="w-full text-left border-collapse table-fixed m-0">
+              <colgroup>
+                <col className="w-[8%]" />
+                <col className="w-[6%]" />
+                <col className="w-[8%]" />
+                <col className="w-[25%]" />
+                <col className="w-[13%]" />
+                <col className="w-[10%]" />
+                <col className="w-[10%]" />
+                <col className="w-[10%]" />
+                <col className="w-[10%]" />
+              </colgroup>
               <tbody className="divide-y divide-[#fca5a5]">
                 {loading && schedules.length === 0 ? (
                   <tr>
@@ -417,42 +444,42 @@ export default function Dashboard() {
                         <tr key={`m-${schedule.id}`} className="hover:bg-[rgba(254,242,242,0.5)] transition-colors">
                           {idx === 0 && (
                             <td rowSpan={totalDayRows} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-black text-[#7f1d1d]">
-                              <div className="sticky top-24 py-4">
-                                <div className="text-xl uppercase">{dayName}</div>
-                                <div className="text-base opacity-70">{formattedDate}</div>
+                              <div className="sticky top-0 py-4">
+                                <div className="text-lg uppercase">{dayName}</div>
+                                <div className="text-sm opacity-70">{formattedDate}</div>
                               </div>
                             </td>
                           )}
                           {idx === 0 && (
-                            <td rowSpan={dayData.morning.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-[#7f1d1d] text-base">
-                              <div className="sticky top-24 py-4">Sáng</div>
+                            <td rowSpan={dayData.morning.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-[#7f1d1d] text-sm">
+                              <div className="sticky top-0 py-4">Sáng</div>
                             </td>
                           )}
-                          <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
+                          <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-lg font-bold text-[#1e293b]">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-xl font-medium leading-relaxed">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-lg font-medium leading-relaxed">
                             {schedule.content}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-lg font-medium">
                             {schedule.program_document || '-'}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#7f1d1d] font-bold text-xl">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#7f1d1d] font-bold text-lg">
                             {schedule.host || '-'}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5]">
                             {schedule.participants.map((p, pIdx) => (
                               <div key={pIdx} className="mb-2 last:mb-0">
-                                <div className="text-lg text-slate-700 font-semibold mb-0.5">{p.position}</div>
-                                <div className="text-xl font-black text-[#7f1d1d]">{p.name}</div>
+                                <div className="text-sm text-slate-700 font-semibold mb-0.5">{p.position}</div>
+                                <div className="text-lg font-black text-[#7f1d1d]">{p.name}</div>
                               </div>
                             ))}
                             {schedule.participants.length === 0 && '-'}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-lg font-medium">
                             {schedule.preparation || '-'}
                           </td>
-                          <td className="py-3 px-4 text-[#1e293b] text-xl font-bold">
+                          <td className="py-3 px-4 text-[#1e293b] text-lg font-bold">
                             {schedule.location}
                           </td>
                         </tr>
@@ -467,42 +494,42 @@ export default function Dashboard() {
                         <tr key={`a-${schedule.id}`} className="hover:bg-[rgba(254,242,242,0.5)] transition-colors border-t border-[#fca5a5]">
                           {!hasMorning && idx === 0 && (
                             <td rowSpan={totalDayRows} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-black text-[#7f1d1d]">
-                              <div className="sticky top-24 py-4">
-                                <div className="text-xl uppercase">{dayName}</div>
-                                <div className="text-base opacity-70">{formattedDate}</div>
+                              <div className="sticky top-0 py-4">
+                                <div className="text-lg uppercase">{dayName}</div>
+                                <div className="text-sm opacity-70">{formattedDate}</div>
                               </div>
                             </td>
                           )}
                           {idx === 0 && (
-                            <td rowSpan={dayData.afternoon.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-orange-900 text-base">
-                              <div className="sticky top-24 py-4">Chiều</div>
+                            <td rowSpan={dayData.afternoon.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-orange-900 text-sm">
+                              <div className="sticky top-0 py-4">Chiều</div>
                             </td>
                           )}
-                          <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
+                          <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-lg font-bold text-[#1e293b]">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-xl font-medium leading-relaxed">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-lg font-medium leading-relaxed">
                             {schedule.content}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-lg font-medium">
                             {schedule.program_document || '-'}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#7f1d1d] font-bold text-xl">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#7f1d1d] font-bold text-lg">
                             {schedule.host || '-'}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5]">
                             {schedule.participants.map((p, pIdx) => (
                               <div key={pIdx} className="mb-2 last:mb-0">
-                                <div className="text-lg text-slate-700 font-semibold mb-0.5">{p.position}</div>
-                                <div className="text-xl font-black text-[#7f1d1d]">{p.name}</div>
+                                <div className="text-sm text-slate-700 font-semibold mb-0.5">{p.position}</div>
+                                <div className="text-lg font-black text-[#7f1d1d]">{p.name}</div>
                               </div>
                             ))}
                             {schedule.participants.length === 0 && '-'}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-lg font-medium">
                             {schedule.preparation || '-'}
                           </td>
-                          <td className="py-3 px-4 text-[#1e293b] text-xl font-bold">
+                          <td className="py-3 px-4 text-[#1e293b] text-lg font-bold">
                             {schedule.location}
                           </td>
                         </tr>

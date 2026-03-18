@@ -27,10 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Safety timeout to prevent permanent white screen on older browsers
     const timeoutId = setTimeout(() => {
       if (loading) {
-        console.warn('Auth initialization timed out, proceeding to render...');
+        console.warn('Auth initialization timed out (10s), proceeding to render...');
         setLoading(false);
       }
-    }, 5000);
+    }, 10000);
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {

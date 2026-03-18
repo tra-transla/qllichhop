@@ -27,6 +27,59 @@
         };
       }
     </script>
+    <style>
+      /* Basic layout fallback for older browsers */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* Ensure header elements don't stack vertically if flex fails */
+      .flex {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+      }
+      .justify-between {
+        -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+      }
+      .items-center {
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+      }
+      /* Ensure logo and title are visible */
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+      /* Dashboard specific fallbacks */
+      h1 {
+        font-size: 24px;
+        text-align: center;
+        margin: 10px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #eee;
+      }
+    </style>
     <title>Hệ thống quản lý lịch công tác tuần</title>
     <script>
       window.onerror = function(msg, url, line, col, error) {
@@ -45,17 +98,70 @@
         return false;
       };
     </script>
+    <script>
+      window.addEventListener('load', function() {
+        var cssLoaded = false;
+        for (var i = 0; i < document.styleSheets.length; i++) {
+          if (document.styleSheets[i].href && document.styleSheets[i].href.indexOf('index.css') !== -1) {
+            cssLoaded = true;
+            break;
+          }
+        }
+        console.log('CSS Loaded:', cssLoaded);
+        if (!cssLoaded) {
+          console.warn('Main CSS file not found in stylesheets. This might be due to a loading error or incompatible browser.');
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root">
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #7f1d1d; background-color: #fef2f2;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #7f1d1d; background-color: #fef2f2;">
         <div style="text-align: center;">
           <h2 style="margin-bottom: 10px;">Đang khởi động hệ thống...</h2>
           <p style="opacity: 0.7;">Vui lòng đợi trong giây lát.</p>
+          <div id="loading-status" style="margin-top: 20px; font-size: 12px; opacity: 0.5;">Đang tải mã nguồn...</div>
         </div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Additional polyfills for very old browsers
+      if (!Array.prototype.flat) {
+        Array.prototype.flat = function(depth) {
+          var flattend = [];
+          (function flat(array, depth) {
+            for (var el of array) {
+              if (Array.isArray(el) && depth > 0) flat(el, depth - 1);
+              else flattend.push(el);
+            }
+          })(this, Math.floor(depth) || 1);
+          return flattend;
+        };
+      }
+      if (!String.prototype.startsWith) {
+        String.prototype.startsWith = function(searchString, position) {
+          position = position || 0;
+          return this.indexOf(searchString, position) === position;
+        };
+      }
+      if (!String.prototype.endsWith) {
+        String.prototype.endsWith = function(searchString, position) {
+          if (position === undefined || position > this.length) {
+            position = this.length;
+          }
+          return this.substring(position - searchString.length, position) === searchString;
+        };
+      }
+      // Check if main script loaded
+      setTimeout(function() {
+        var root = document.getElementById('root');
+        if (root && root.innerHTML.indexOf('Đang khởi động') !== -1) {
+          var status = document.getElementById('loading-status');
+          if (status) status.innerHTML = 'Mã nguồn đang được xử lý...';
+        }
+      }, 5000);
+    </script>
   </body>
 </html>
 
