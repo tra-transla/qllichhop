@@ -74,8 +74,8 @@ export default function Dashboard() {
     };
 
     updateData();
-    // Poll every 20 seconds for real-time updates and date changes
-    const interval = setInterval(updateData, 20000);
+    // Poll every 10 seconds for real-time updates and date changes
+    const interval = setInterval(updateData, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -85,6 +85,7 @@ export default function Dashboard() {
   // Pagination & Auto-flip logic
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [pageOffsets, setPageOffsets] = useState<number[]>([0]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -95,20 +96,49 @@ export default function Dashboard() {
         const header = container.querySelector('thead');
         const headerHeight = header ? header.clientHeight : 0;
         const viewHeight = container.clientHeight - headerHeight;
-        const contentHeight = container.scrollHeight - headerHeight;
         
         if (viewHeight > 0) {
-          const pages = Math.ceil(contentHeight / viewHeight);
-          setTotalPages(pages > 0 ? pages : 1);
+          const rows = Array.from(container.querySelectorAll('tbody tr'));
+          const offsets = [0];
+          let currentAccumulatedHeight = 0;
+          let currentPageHeight = 0;
+
+          rows.forEach((row) => {
+            const rowHeight = (row as HTMLElement).offsetHeight;
+            
+            // If adding this row exceeds viewHeight, and we already have some content on this page
+            if (currentPageHeight + rowHeight > viewHeight && currentPageHeight > 0) {
+              currentAccumulatedHeight += currentPageHeight;
+              offsets.push(currentAccumulatedHeight);
+              currentPageHeight = rowHeight;
+            } else {
+              currentPageHeight += rowHeight;
+            }
+          });
+
+          setPageOffsets(offsets);
+          setTotalPages(offsets.length > 0 ? offsets.length : 1);
         }
       }
     };
 
     const timeoutId = setTimeout(calculatePages, 1000);
+    
+    // Use ResizeObserver for more accurate measurement when content changes or window resizes
+    const container = document.getElementById('schedule-scroll-container');
+    const resizeObserver = new ResizeObserver(() => {
+      calculatePages();
+    });
+    
+    if (container) {
+      resizeObserver.observe(container);
+    }
+
     window.addEventListener('resize', calculatePages);
     return () => {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', calculatePages);
+      resizeObserver.disconnect();
     };
   }, [schedules]);
 
@@ -130,13 +160,9 @@ export default function Dashboard() {
         setCurrentPage(prev => {
           const next = (prev + 1) % totalPages;
           const container = document.getElementById('schedule-scroll-container');
-          if (container) {
-            const header = container.querySelector('thead');
-            const headerHeight = header ? header.clientHeight : 0;
-            const viewHeight = container.clientHeight - headerHeight;
-            
+          if (container && pageOffsets[next] !== undefined) {
             container.scrollTo({ 
-              top: next * viewHeight, 
+              top: pageOffsets[next], 
               behavior: 'instant' 
             });
           }
@@ -146,10 +172,10 @@ export default function Dashboard() {
         setIsFlipping(false);
       }, 400); // Wait for fade out
 
-    }, 20000); // 20 seconds interval
+    }, 10000); // 10 seconds interval
 
     return () => clearInterval(interval);
-  }, [totalPages, isHovered]);
+  }, [totalPages, isHovered, pageOffsets]);
 
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
@@ -212,17 +238,13 @@ export default function Dashboard() {
   // Sync scroll position when currentPage changes manually via remote
   useEffect(() => {
     const container = document.getElementById('schedule-scroll-container');
-    if (container) {
-      const header = container.querySelector('thead');
-      const headerHeight = header ? header.clientHeight : 0;
-      const viewHeight = container.clientHeight - headerHeight;
-      
+    if (container && pageOffsets[currentPage] !== undefined) {
       container.scrollTo({ 
-        top: currentPage * viewHeight, 
+        top: pageOffsets[currentPage], 
         behavior: 'smooth' 
       });
     }
-  }, [currentPage]);
+  }, [currentPage, pageOffsets]);
 
   // Group schedules by date and then by morning/afternoon
   const groupedSchedules = schedules.reduce((acc, schedule) => {
@@ -340,13 +362,15 @@ export default function Dashboard() {
                         <tr key={`m-${schedule.id}`} className="hover:bg-[rgba(254,242,242,0.5)] transition-colors">
                           {idx === 0 && (
                             <td rowSpan={totalDayRows} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-black text-[#7f1d1d]">
-                              <div className="text-xl uppercase">{dayName}</div>
-                              <div className="text-base opacity-70">{formattedDate}</div>
+                              <div className="sticky top-24 py-4">
+                                <div className="text-xl uppercase">{dayName}</div>
+                                <div className="text-base opacity-70">{formattedDate}</div>
+                              </div>
                             </td>
                           )}
                           {idx === 0 && (
                             <td rowSpan={dayData.morning.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-[#7f1d1d] text-base">
-                              Sáng
+                              <div className="sticky top-24 py-4">Sáng</div>
                             </td>
                           )}
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
@@ -388,13 +412,15 @@ export default function Dashboard() {
                         <tr key={`a-${schedule.id}`} className="hover:bg-[rgba(254,242,242,0.5)] transition-colors border-t border-[#fca5a5]">
                           {!hasMorning && idx === 0 && (
                             <td rowSpan={totalDayRows} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-black text-[#7f1d1d]">
-                              <div className="text-xl uppercase">{dayName}</div>
-                              <div className="text-base opacity-70">{formattedDate}</div>
+                              <div className="sticky top-24 py-4">
+                                <div className="text-xl uppercase">{dayName}</div>
+                                <div className="text-base opacity-70">{formattedDate}</div>
+                              </div>
                             </td>
                           )}
                           {idx === 0 && (
                             <td rowSpan={dayData.afternoon.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-orange-900 text-base">
-                              Chiều
+                              <div className="sticky top-24 py-4">Chiều</div>
                             </td>
                           )}
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
@@ -440,7 +466,7 @@ export default function Dashboard() {
               {Array.from({ length: totalPages }).map((_, idx) => (
                 <div 
                   key={idx} 
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20'}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-[#8b0000] shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-[#8b0000]/20'}`}
                 />
               ))}
               <span className="ml-2 uppercase tracking-widest text-[10px] opacity-80">Trang {currentPage + 1} / {totalPages}</span>
