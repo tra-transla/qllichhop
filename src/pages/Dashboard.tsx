@@ -349,7 +349,7 @@ export default function Dashboard() {
           {/* Decorative Main Title Box in the center */}
           <div className="relative px-4 sm:px-12 py-3 sm:py-5 bg-gradient-to-b from-[#a31d1d] to-[#7a1515] rounded-lg border-2 border-[#d4af37] shadow-2xl flex-[2] max-w-[850px] mx-2 sm:mx-4">
             <h1 className="text-xl sm:text-3xl font-black text-white uppercase tracking-[0.1em] sm:tracking-[0.15em] drop-shadow-lg text-center leading-tight">
-              Thông báo: Lịch công tác tuần
+              Lịch công tác tuần
             </h1>
             <div className="w-20 sm:w-40 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent my-1 sm:my-2 mx-auto"></div>
             <p className="text-sm sm:text-lg font-bold text-[#ffd700] italic text-center">
