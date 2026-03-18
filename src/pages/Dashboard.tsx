@@ -94,7 +94,7 @@ export default function Dashboard() {
       const container = document.getElementById('schedule-scroll-container');
       if (container) {
         const header = container.querySelector('thead');
-        const headerHeight = header ? header.clientHeight : 0;
+        const headerHeight = header ? header.getBoundingClientRect().height : 0;
         const viewHeight = container.clientHeight - headerHeight;
         
         if (viewHeight > 0) {
@@ -104,10 +104,10 @@ export default function Dashboard() {
           let currentPageHeight = 0;
 
           rows.forEach((row) => {
-            const rowHeight = (row as HTMLElement).offsetHeight;
+            const rowHeight = (row as HTMLElement).getBoundingClientRect().height;
             
-            // If adding this row exceeds viewHeight, and we already have some content on this page
-            if (currentPageHeight + rowHeight > viewHeight && currentPageHeight > 0) {
+            // Use a small tolerance (1px) for sub-pixel issues
+            if (currentPageHeight + rowHeight > viewHeight + 1 && currentPageHeight > 0) {
               currentAccumulatedHeight += currentPageHeight;
               offsets.push(currentAccumulatedHeight);
               currentPageHeight = rowHeight;
@@ -116,7 +116,11 @@ export default function Dashboard() {
             }
           });
 
-          setPageOffsets(offsets);
+          // Only update if offsets actually changed to avoid unnecessary re-renders
+          setPageOffsets(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(offsets)) return prev;
+            return offsets;
+          });
           setTotalPages(offsets.length > 0 ? offsets.length : 1);
         }
       }
@@ -124,7 +128,6 @@ export default function Dashboard() {
 
     const timeoutId = setTimeout(calculatePages, 1000);
     
-    // Use ResizeObserver for more accurate measurement when content changes or window resizes
     const container = document.getElementById('schedule-scroll-container');
     const resizeObserver = new ResizeObserver(() => {
       calculatePages();
@@ -157,25 +160,25 @@ export default function Dashboard() {
       setIsFlipping(true);
       
       setTimeout(() => {
-        setCurrentPage(prev => {
-          const next = (prev + 1) % totalPages;
-          const container = document.getElementById('schedule-scroll-container');
-          if (container && pageOffsets[next] !== undefined) {
-            container.scrollTo({ 
-              top: pageOffsets[next], 
-              behavior: 'instant' 
-            });
-          }
-          return next;
-        });
-        
+        setCurrentPage(prev => (prev + 1) % totalPages);
         setIsFlipping(false);
-      }, 400); // Wait for fade out
+      }, 500); // Wait for fade out
 
     }, 10000); // 10 seconds interval
 
     return () => clearInterval(interval);
-  }, [totalPages, isHovered, pageOffsets]);
+  }, [totalPages, isHovered]);
+
+  // Sync scroll position when currentPage changes
+  useEffect(() => {
+    const container = document.getElementById('schedule-scroll-container');
+    if (container && pageOffsets[currentPage] !== undefined) {
+      container.scrollTo({ 
+        top: pageOffsets[currentPage], 
+        behavior: isFlipping ? 'instant' : 'smooth' 
+      });
+    }
+  }, [currentPage, pageOffsets, isFlipping]);
 
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
@@ -234,17 +237,6 @@ export default function Dashboard() {
       clearTimeout(timeout);
     };
   }, []);
-
-  // Sync scroll position when currentPage changes manually via remote
-  useEffect(() => {
-    const container = document.getElementById('schedule-scroll-container');
-    if (container && pageOffsets[currentPage] !== undefined) {
-      container.scrollTo({ 
-        top: pageOffsets[currentPage], 
-        behavior: 'smooth' 
-      });
-    }
-  }, [currentPage, pageOffsets]);
 
   // Group schedules by date and then by morning/afternoon
   const groupedSchedules = schedules.reduce((acc, schedule) => {
