@@ -260,7 +260,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="relative h-[calc(100vh-4rem)] flex flex-col p-6 overflow-hidden">
+    <div className="relative h-screen w-full flex flex-col p-4 sm:p-6 overflow-hidden">
       {/* Background Image with Opacity */}
       <div 
         className="absolute inset-0 z-0"
@@ -275,32 +275,32 @@ export default function Dashboard() {
       {/* Content Overlay */}
       <div className="relative z-10 flex flex-col h-full space-y-6">
         {/* Header Section: Logo, Title Box, and Org Info aligned horizontally */}
-        <div className="flex justify-between items-center px-12 pt-6 shrink-0 gap-8">
+        <div className="flex justify-between items-center px-4 sm:px-12 pt-4 sm:pt-6 shrink-0 gap-4 sm:gap-8">
           {/* Logo on the left */}
-          <div className="w-[280px] flex justify-start items-center">
+          <div className="flex-1 flex justify-start items-center min-w-0">
             <img 
               src="https://special.nhandan.vn/vung-buoc-tien-len-duoi-la-co-ve-vang-cua-Dang/assets/xbdprWoiui/thie-t-ke-chu-a-co-te-n-45-1000x1000.png" 
               alt="Logo" 
-              className="w-[150px] h-[150px] object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.4)]"
+              className="w-24 h-24 sm:w-[150px] sm:h-[150px] object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.4)]"
               referrerPolicy="no-referrer"
             />
           </div>
 
           {/* Decorative Main Title Box in the center */}
-          <div className="relative px-12 py-5 bg-gradient-to-b from-[#a31d1d] to-[#7a1515] rounded-lg border-2 border-[#d4af37] shadow-2xl flex-1 max-w-[850px]">
-            <h1 className="text-3xl font-black text-white uppercase tracking-[0.15em] drop-shadow-lg text-center leading-tight">
+          <div className="relative px-4 sm:px-12 py-3 sm:py-5 bg-gradient-to-b from-[#a31d1d] to-[#7a1515] rounded-lg border-2 border-[#d4af37] shadow-2xl flex-[2] max-w-[850px]">
+            <h1 className="text-xl sm:text-3xl font-black text-white uppercase tracking-[0.1em] sm:tracking-[0.15em] drop-shadow-lg text-center leading-tight">
               Thông báo: Lịch công tác tuần
             </h1>
-            <div className="w-40 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent my-2 mx-auto"></div>
-            <p className="text-lg font-bold text-[#ffd700] italic text-center">
+            <div className="w-20 sm:w-40 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent my-1 sm:my-2 mx-auto"></div>
+            <p className="text-sm sm:text-lg font-bold text-[#ffd700] italic text-center">
               Từ ngày {format(startDate, 'dd/MM/yyyy')} đến ngày {format(endDate, 'dd/MM/yyyy')}
             </p>
           </div>
 
           {/* Organization info on the right */}
-          <div className="w-[280px] text-[#7f1d1d] font-bold uppercase leading-tight text-center drop-shadow-sm">
-            <p className="text-xl mb-1">Tỉnh uỷ Sơn La</p>
-            <p className="text-3xl">Ban Tổ chức</p>
+          <div className="flex-1 text-[#7f1d1d] font-bold uppercase leading-tight text-center drop-shadow-sm min-w-0">
+            <p className="text-sm sm:text-xl mb-0 sm:mb-1">Tỉnh uỷ Sơn La</p>
+            <p className="text-lg sm:text-3xl">Ban Tổ chức</p>
           </div>
         </div>
 
@@ -316,15 +316,15 @@ export default function Dashboard() {
             <table className="w-full text-left border-collapse table-fixed">
               <thead className="sticky top-0 z-30 shadow-md">
                 <tr className="bg-[#8b0000]">
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-35 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thứ</th>
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 text-center uppercase tracking-wider text-base bg-[#8b0000]">Buổi</th>
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thời gian</th>
-                  <th className="py-3 px-5 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-base bg-[#8b0000]">Nội dung công việc</th>
-                  <th className="py-3 px-3 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chương trình/Văn bản</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chủ trì</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thành phần/Lãnh đạo</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chuẩn bị</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Địa điểm</th>
+                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 sm:w-32 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thứ</th>
+                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-16 sm:w-24 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Buổi</th>
+                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-16 sm:w-24 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thời gian</th>
+                  <th className="py-3 px-5 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Nội dung công việc</th>
+                  <th className="py-3 px-3 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chương trình/Văn bản</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chủ trì</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thành phần/Lãnh đạo</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chuẩn bị</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Địa điểm</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#fca5a5]">

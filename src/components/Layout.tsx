@@ -18,59 +18,20 @@ export default function Layout() {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      const doc = document as any;
-      setIsFullscreen(!!(doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement));
+      setIsFullscreen(!!document.fullscreenElement);
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
   const toggleFullscreen = () => {
-    const doc = document.documentElement as any;
-    const docWithFullscreen = document as any;
-
-    if (!docWithFullscreen.fullscreenElement && 
-        !docWithFullscreen.mozFullScreenElement && 
-        !docWithFullscreen.webkitFullscreenElement && 
-        !docWithFullscreen.msFullscreenElement) {
-      
-      try {
-        if (doc.requestFullscreen) {
-          doc.requestFullscreen();
-        } else if (doc.msRequestFullscreen) {
-          doc.msRequestFullscreen();
-        } else if (doc.mozRequestFullScreen) {
-          doc.mozRequestFullScreen();
-        } else if (doc.webkitRequestFullscreen) {
-          doc.webkitRequestFullscreen();
-        }
-      } catch (err: any) {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
         console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      }
+      });
     } else {
-      try {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (docWithFullscreen.msExitFullscreen) {
-          docWithFullscreen.msExitFullscreen();
-        } else if (docWithFullscreen.mozCancelFullScreen) {
-          docWithFullscreen.mozCancelFullScreen();
-        } else if (docWithFullscreen.webkitExitFullscreen) {
-          docWithFullscreen.webkitExitFullscreen();
-        }
-      } catch (err: any) {
-        console.error(`Error attempting to exit fullscreen: ${err.message}`);
-      }
+      document.exitFullscreen();
     }
   };
 
@@ -194,7 +155,7 @@ export default function Layout() {
         </div>
       )}
 
-      <main className={cn("flex-1 w-full mx-auto", isAdmin ? "px-4 sm:px-6 lg:px-8 py-8" : "px-2 sm:px-4 py-6")}>
+      <main className={cn("flex-1 w-full mx-auto", isAdmin ? "px-4 sm:px-6 lg:px-8 py-8" : "p-0")}>
         <Outlet />
       </main>
     </div>
