@@ -322,7 +322,7 @@ export default function Dashboard() {
                   <th className="py-3 px-5 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Nội dung công việc</th>
                   <th className="py-3 px-3 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chương trình/Văn bản</th>
                   <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chủ trì</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thành phần/Lãnh đạo</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thành phần</th>
                   <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chuẩn bị</th>
                   <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Địa điểm</th>
                 </tr>
