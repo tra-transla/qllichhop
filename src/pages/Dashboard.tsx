@@ -1,30 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Clock as ClockIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import ResizeObserver from 'resize-observer-polyfill';
-
-function Clock() {
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="flex flex-col items-end text-[#7f1d1d] font-bold">
-      <div className="flex items-center gap-2 text-3xl sm:text-4xl tracking-tighter">
-        <ClockIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-        <span>{format(time, 'HH:mm:ss')}</span>
-      </div>
-      <div className="text-sm sm:text-base opacity-80 uppercase">
-        {format(time, 'eeee, dd/MM/yyyy', { locale: vi })}
-      </div>
-    </div>
-  );
-}
 
 interface Schedule {
   id: number;
@@ -43,14 +21,10 @@ interface Schedule {
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [todayStr, setTodayStr] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
 
-  console.log('Dashboard rendering, loading:', loading, 'schedules:', schedules.length);
-
   const fetchSchedules = async (start: Date, end: Date) => {
-    console.log('Fetching schedules for:', format(start, 'yyyy-MM-dd'), 'to', format(end, 'yyyy-MM-dd'));
     setLoading(true);
     try {
       const startStr = format(start, 'yyyy-MM-dd');
@@ -72,12 +46,7 @@ export default function Dashboard() {
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Fetched data:', data?.length || 0, 'rows');
+      if (error) throw error;
 
       const formattedSchedules = (data || []).map(s => ({
         ...s,
@@ -96,36 +65,19 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    const fetchCurrentSchedules = () => {
-      const start = startOfWeek(currentDate, { weekStartsOn: 1 });
-      const end = endOfWeek(currentDate, { weekStartsOn: 1 });
+    const updateData = () => {
+      const now = new Date();
+      setCurrentDate(now);
+      const start = startOfWeek(now, { weekStartsOn: 1 });
+      const end = endOfWeek(now, { weekStartsOn: 1 });
       fetchSchedules(start, end);
     };
 
-    fetchCurrentSchedules();
-    // Poll every 10 seconds for real-time updates
-    const interval = setInterval(fetchCurrentSchedules, 10000);
-    
-    // Update todayStr if day changes
-    const todayInterval = setInterval(() => {
-      const now = new Date();
-      const currentToday = format(now, 'yyyy-MM-dd');
-      if (currentToday !== todayStr) {
-        setTodayStr(currentToday);
-      }
-    }, 60000);
-
-    // Full page reload every 24 hours to clear memory on TV boxes
-    const reloadInterval = setInterval(() => {
-      window.location.reload();
-    }, 24 * 60 * 60 * 1000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(todayInterval);
-      clearInterval(reloadInterval);
-    };
-  }, [currentDate, todayStr]);
+    updateData();
+    // Poll every 20 seconds for real-time updates and date changes
+    const interval = setInterval(updateData, 20000);
+    return () => clearInterval(interval);
+  }, []);
 
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
@@ -133,7 +85,6 @@ export default function Dashboard() {
   // Pagination & Auto-flip logic
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageOffsets, setPageOffsets] = useState<number[]>([0]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -142,56 +93,24 @@ export default function Dashboard() {
       const container = document.getElementById('schedule-scroll-container');
       if (container) {
         const header = container.querySelector('thead');
-        const headerHeight = header ? header.getBoundingClientRect().height : 0;
+        const headerHeight = header ? header.clientHeight : 0;
         const viewHeight = container.clientHeight - headerHeight;
+        const contentHeight = container.scrollHeight - headerHeight;
         
         if (viewHeight > 0) {
-          const rows = Array.from(container.querySelectorAll('tbody tr'));
-          const offsets = [0];
-          let currentAccumulatedHeight = 0;
-          let currentPageHeight = 0;
-
-          rows.forEach((row) => {
-            const rowHeight = (row as HTMLElement).getBoundingClientRect().height;
-            
-            // Use a small tolerance (1px) for sub-pixel issues
-            if (currentPageHeight + rowHeight > viewHeight + 1 && currentPageHeight > 0) {
-              currentAccumulatedHeight += currentPageHeight;
-              offsets.push(currentAccumulatedHeight);
-              currentPageHeight = rowHeight;
-            } else {
-              currentPageHeight += rowHeight;
-            }
-          });
-
-          // Only update if offsets actually changed to avoid unnecessary re-renders
-          setPageOffsets(prev => {
-            if (JSON.stringify(prev) === JSON.stringify(offsets)) return prev;
-            return offsets;
-          });
-          setTotalPages(offsets.length > 0 ? offsets.length : 1);
+          const pages = Math.ceil(contentHeight / viewHeight);
+          setTotalPages(pages > 0 ? pages : 1);
         }
       }
     };
 
     const timeoutId = setTimeout(calculatePages, 1000);
-    
-    const container = document.getElementById('schedule-scroll-container');
-    let resizeObserverInstance: any = null;
-    if (container) {
-      resizeObserverInstance = new ResizeObserver(() => {
-        calculatePages();
-      });
-      resizeObserverInstance.observe(container);
-    }
-    
     window.addEventListener('resize', calculatePages);
     return () => {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', calculatePages);
-      if (resizeObserverInstance) resizeObserverInstance.disconnect();
     };
-  }, [schedules, todayStr, currentDate]);
+  }, [schedules]);
 
   useEffect(() => {
     if (currentPage >= totalPages) {
@@ -208,25 +127,29 @@ export default function Dashboard() {
       setIsFlipping(true);
       
       setTimeout(() => {
-        setCurrentPage(prev => (prev + 1) % totalPages);
+        setCurrentPage(prev => {
+          const next = (prev + 1) % totalPages;
+          const container = document.getElementById('schedule-scroll-container');
+          if (container) {
+            const header = container.querySelector('thead');
+            const headerHeight = header ? header.clientHeight : 0;
+            const viewHeight = container.clientHeight - headerHeight;
+            
+            container.scrollTo({ 
+              top: next * viewHeight, 
+              behavior: 'instant' 
+            });
+          }
+          return next;
+        });
+        
         setIsFlipping(false);
-      }, 500); // Wait for fade out
+      }, 400); // Wait for fade out
 
-    }, 10000); // 10 seconds interval
+    }, 20000); // 20 seconds interval
 
     return () => clearInterval(interval);
   }, [totalPages, isHovered]);
-
-  // Sync scroll position when currentPage changes
-  useEffect(() => {
-    const container = document.getElementById('schedule-scroll-container');
-    if (container && pageOffsets[currentPage] !== undefined) {
-      container.scrollTo({ 
-        top: pageOffsets[currentPage], 
-        behavior: isFlipping ? 'instant' : 'smooth' 
-      });
-    }
-  }, [currentPage, pageOffsets, isFlipping]);
 
   const nextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
   const prevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
@@ -235,40 +158,28 @@ export default function Dashboard() {
   // TV Remote Control Support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Log key code for debugging on different TV boxes
-      console.log('Key pressed:', e.keyCode, e.key);
-
       switch(e.keyCode) {
         case 37: // Left
-        case 21: // Android Left
           prevWeek();
           break;
         case 39: // Right
-        case 22: // Android Right
           nextWeek();
           break;
         case 38: // Up
-        case 19: // Android Up
           if (totalPages > 1) {
             setCurrentPage(prev => (prev - 1 + totalPages) % totalPages);
           }
           break;
         case 40: // Down
-        case 20: // Android Down
           if (totalPages > 1) {
             setCurrentPage(prev => (prev + 1) % totalPages);
           }
           break;
         case 13: // Enter
-        case 23: // Android Center/Enter
-        case 66: // Android B (Enter)
           today();
           break;
         case 10009: // Samsung Return/Back
-        case 4:     // Android Back
-        case 27:    // ESC
-          // Prevent default back behavior if needed
-          // e.g., if in a modal, close it. Here we just log.
+          // Handle back button if needed, e.g., go to home or exit
           break;
       }
     };
@@ -298,6 +209,21 @@ export default function Dashboard() {
     };
   }, []);
 
+  // Sync scroll position when currentPage changes manually via remote
+  useEffect(() => {
+    const container = document.getElementById('schedule-scroll-container');
+    if (container) {
+      const header = container.querySelector('thead');
+      const headerHeight = header ? header.clientHeight : 0;
+      const viewHeight = container.clientHeight - headerHeight;
+      
+      container.scrollTo({ 
+        top: currentPage * viewHeight, 
+        behavior: 'smooth' 
+      });
+    }
+  }, [currentPage]);
+
   // Group schedules by date and then by morning/afternoon
   const groupedSchedules = schedules.reduce((acc, schedule) => {
     if (!acc[schedule.date]) {
@@ -312,15 +238,15 @@ export default function Dashboard() {
     return acc;
   }, {} as Record<string, { morning: Schedule[], afternoon: Schedule[] }>);
 
-  // Generate array of dates for the current week, filtering out past days
+  // Generate array of dates for the current week
   const weekDates = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(startDate);
     d.setDate(d.getDate() + i);
     return format(d, 'yyyy-MM-dd');
-  }).filter(date => date >= todayStr);
+  });
 
   return (
-    <div className="relative h-screen w-full flex flex-col p-6 sm:p-10 overflow-hidden select-none" style={{ height: '100vh' }}>
+    <div className="relative h-[calc(100vh-4rem)] flex flex-col p-6 overflow-hidden">
       {/* Background Image with Opacity */}
       <div 
         className="absolute inset-0 z-0"
@@ -335,35 +261,32 @@ export default function Dashboard() {
       {/* Content Overlay */}
       <div className="relative z-10 flex flex-col h-full space-y-6">
         {/* Header Section: Logo, Title Box, and Org Info aligned horizontally */}
-        <div className="flex justify-between items-center px-4 sm:px-12 pt-4 sm:pt-6 shrink-0">
+        <div className="flex justify-between items-center px-12 pt-6 shrink-0 gap-8">
           {/* Logo on the left */}
-          <div className="flex-1 flex justify-start items-center min-w-0 pr-4 sm:pr-8">
+          <div className="w-[280px] flex justify-start items-center">
             <img 
-              src="https://i.ibb.co/KjvsbZby/logo-codang.png" 
+              src="https://special.nhandan.vn/vung-buoc-tien-len-duoi-la-co-ve-vang-cua-Dang/assets/xbdprWoiui/thie-t-ke-chu-a-co-te-n-45-1000x1000.png" 
               alt="Logo" 
-              className="w-24 h-24 sm:w-[150px] sm:h-[150px] object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.4)]"
+              className="w-[150px] h-[150px] object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.4)]"
               referrerPolicy="no-referrer"
             />
           </div>
 
           {/* Decorative Main Title Box in the center */}
-          <div className="relative px-4 sm:px-12 py-3 sm:py-5 bg-gradient-to-b from-[#a31d1d] to-[#7a1515] rounded-lg border-2 border-[#d4af37] shadow-2xl flex-[2] max-w-[850px] mx-2 sm:mx-4">
-            <h1 className="text-xl sm:text-3xl font-black text-white uppercase tracking-[0.1em] sm:tracking-[0.15em] drop-shadow-lg text-center leading-tight">
+          <div className="relative px-12 py-5 bg-gradient-to-b from-[#a31d1d] to-[#7a1515] rounded-lg border-2 border-[#d4af37] shadow-2xl flex-1 max-w-[850px]">
+            <h1 className="text-3xl font-black text-white uppercase tracking-[0.15em] drop-shadow-lg text-center leading-tight">
               Thông báo: Lịch công tác tuần
             </h1>
-            <div className="w-20 sm:w-40 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent my-1 sm:my-2 mx-auto"></div>
-            <p className="text-sm sm:text-lg font-bold text-[#ffd700] italic text-center">
+            <div className="w-40 h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent my-2 mx-auto"></div>
+            <p className="text-lg font-bold text-[#ffd700] italic text-center">
               Từ ngày {format(startDate, 'dd/MM/yyyy')} đến ngày {format(endDate, 'dd/MM/yyyy')}
             </p>
           </div>
 
           {/* Organization info on the right */}
-          <div className="flex-1 flex flex-col items-end gap-2 min-w-0 pl-4 sm:pl-8">
-            <div className="text-[#7f1d1d] font-bold uppercase leading-tight text-right drop-shadow-sm">
-              <p className="text-sm sm:text-xl mb-0 sm:mb-1">Tỉnh uỷ Sơn La</p>
-              <p className="text-lg sm:text-3xl">Ban Tổ chức</p>
-            </div>
-            <Clock />
+          <div className="w-[280px] text-[#7f1d1d] font-bold uppercase leading-tight text-center drop-shadow-sm">
+            <p className="text-xl mb-1">Tỉnh uỷ Sơn La</p>
+            <p className="text-3xl">Ban Tổ chức</p>
           </div>
         </div>
 
@@ -379,15 +302,15 @@ export default function Dashboard() {
             <table className="w-full text-left border-collapse table-fixed">
               <thead className="sticky top-0 z-30 shadow-md">
                 <tr className="bg-[#8b0000]">
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 sm:w-32 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thứ</th>
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-16 sm:w-24 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Buổi</th>
-                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-16 sm:w-24 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thời gian</th>
-                  <th className="py-3 px-5 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Nội dung công việc</th>
-                  <th className="py-3 px-3 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chương trình/Văn bản</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chủ trì</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Thành phần</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Chuẩn bị</th>
-                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-32 sm:w-56 text-center uppercase tracking-wider text-sm sm:text-base bg-[#8b0000]">Địa điểm</th>
+                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-35 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thứ</th>
+                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 text-center uppercase tracking-wider text-base bg-[#8b0000]">Buổi</th>
+                  <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thời gian</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-base bg-[#8b0000]">Nội dung công việc</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chương trình/Văn bản</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chủ trì</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thành phần/Lãnh đạo</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chuẩn bị</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Địa điểm</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#fca5a5]">
@@ -417,15 +340,13 @@ export default function Dashboard() {
                         <tr key={`m-${schedule.id}`} className="hover:bg-[rgba(254,242,242,0.5)] transition-colors">
                           {idx === 0 && (
                             <td rowSpan={totalDayRows} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-black text-[#7f1d1d]">
-                              <div className="sticky top-24 py-4">
-                                <div className="text-xl uppercase">{dayName}</div>
-                                <div className="text-base opacity-70">{formattedDate}</div>
-                              </div>
+                              <div className="text-xl uppercase">{dayName}</div>
+                              <div className="text-base opacity-70">{formattedDate}</div>
                             </td>
                           )}
                           {idx === 0 && (
                             <td rowSpan={dayData.morning.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-[#7f1d1d] text-base">
-                              <div className="sticky top-24 py-4">Sáng</div>
+                              Sáng
                             </td>
                           )}
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
@@ -467,15 +388,13 @@ export default function Dashboard() {
                         <tr key={`a-${schedule.id}`} className="hover:bg-[rgba(254,242,242,0.5)] transition-colors border-t border-[#fca5a5]">
                           {!hasMorning && idx === 0 && (
                             <td rowSpan={totalDayRows} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-black text-[#7f1d1d]">
-                              <div className="sticky top-24 py-4">
-                                <div className="text-xl uppercase">{dayName}</div>
-                                <div className="text-base opacity-70">{formattedDate}</div>
-                              </div>
+                              <div className="text-xl uppercase">{dayName}</div>
+                              <div className="text-base opacity-70">{formattedDate}</div>
                             </td>
                           )}
                           {idx === 0 && (
                             <td rowSpan={dayData.afternoon.length} className="py-3 px-2 border-r border-[#fca5a5] text-center align-middle font-bold text-orange-900 text-base">
-                              <div className="sticky top-24 py-4">Chiều</div>
+                              Chiều
                             </td>
                           )}
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
@@ -521,28 +440,12 @@ export default function Dashboard() {
               {Array.from({ length: totalPages }).map((_, idx) => (
                 <div 
                   key={idx} 
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-[#8b0000] shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-[#8b0000]/20'}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentPage ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20'}`}
                 />
               ))}
               <span className="ml-2 uppercase tracking-widest text-[10px] opacity-80">Trang {currentPage + 1} / {totalPages}</span>
             </div>
           )}
-        </div>
-
-        {/* TV Remote Navigation Guide */}
-        <div className="shrink-0 flex justify-center items-center py-2 bg-black/40 rounded-full border border-white/10 text-white/60 text-xs sm:text-sm font-medium uppercase tracking-widest">
-          <div className="flex items-center mx-4">
-            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white mr-2">← / →</span>
-            <span>Tuần trước / sau</span>
-          </div>
-          <div className="flex items-center mx-4">
-            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white mr-2">↑ / ↓</span>
-            <span>Chuyển trang</span>
-          </div>
-          <div className="flex items-center mx-4">
-            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white mr-2">OK / ENTER</span>
-            <span>Về hôm nay</span>
-          </div>
         </div>
       </div>
     </div>
