@@ -241,8 +241,8 @@ create policy "Cho phép tất cả xóa profiles" on public.profiles for delete
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[600px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
               <th className="py-3 px-4 font-semibold text-slate-600">Tên đăng nhập</th>

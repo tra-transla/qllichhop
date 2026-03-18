@@ -44,7 +44,7 @@ export default function Layout() {
     <div className="min-h-screen bg-[#f8fafc] flex flex-col">
       {isAdmin ? (
         <header className="bg-white border-b border-[#e2e8f0] sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex">
                 <Link to="/" className="flex items-center gap-2 font-semibold text-[#0f172a] text-lg">
@@ -112,7 +112,7 @@ export default function Layout() {
 
       {isAdmin && (
         <div className="bg-white border-b border-[#e2e8f0]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex space-x-8">
               <Link
                 to="/admin/schedules"
@@ -155,7 +155,7 @@ export default function Layout() {
         </div>
       )}
 
-      <main className={cn("flex-1 w-full mx-auto", isAdmin ? "max-w-7xl px-4 sm:px-6 lg:px-8 py-8" : "px-2 sm:px-4 py-6")}>
+      <main className={cn("flex-1 w-full mx-auto", isAdmin ? "px-4 sm:px-6 lg:px-8 py-8" : "px-2 sm:px-4 py-6")}>
         <Outlet />
       </main>
     </div>

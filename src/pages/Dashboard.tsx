@@ -9,11 +9,14 @@ interface Schedule {
   date: string;
   time: string;
   content: string;
-  leader_id: number;
+  program_document?: string;
+  preparation?: string;
   location: string;
-  leader_name: string;
-  leader_position: string;
   host?: string;
+  participants: {
+    name: string;
+    position: string;
+  }[];
 }
 
 export default function Dashboard() {
@@ -31,9 +34,11 @@ export default function Dashboard() {
         .from('schedules')
         .select(`
           *,
-          leaders (
-            name,
-            position
+          schedule_participants (
+            leaders (
+              name,
+              position
+            )
           )
         `)
         .gte('date', startStr)
@@ -45,8 +50,10 @@ export default function Dashboard() {
 
       const formattedSchedules = (data || []).map(s => ({
         ...s,
-        leader_name: s.leaders?.name,
-        leader_position: s.leaders?.position
+        participants: (s.schedule_participants || []).map((p: any) => ({
+          name: p.leaders?.name,
+          position: p.leaders?.position
+        }))
       }));
 
       setSchedules(formattedSchedules);
@@ -299,15 +306,17 @@ export default function Dashboard() {
                   <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 text-center uppercase tracking-wider text-base bg-[#8b0000]">Buổi</th>
                   <th className="py-3 px-2 font-bold text-white border-b border-r border-[#7f1d1d] w-24 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thời gian</th>
                   <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] text-center uppercase tracking-wider text-base bg-[#8b0000]">Nội dung công việc</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chương trình/Văn bản</th>
                   <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chủ trì</th>
                   <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Thành phần/Lãnh đạo</th>
+                  <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Chuẩn bị</th>
                   <th className="py-3 px-4 font-bold text-white border-b border-r border-[#7f1d1d] w-56 text-center uppercase tracking-wider text-base bg-[#8b0000]">Địa điểm</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#fca5a5]">
                 {loading && schedules.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-16 text-center text-[#7f1d1d] text-xl font-medium">
+                    <td colSpan={9} className="py-16 text-center text-[#7f1d1d] text-xl font-medium">
                       Đang tải dữ liệu...
                     </td>
                   </tr>
@@ -346,12 +355,23 @@ export default function Dashboard() {
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-xl font-medium leading-relaxed">
                             {schedule.content}
                           </td>
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                            {schedule.program_document || '-'}
+                          </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-[#7f1d1d] font-bold text-xl">
                             {schedule.host || '-'}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5]">
-                            <div className="text-lg text-[#334155] font-semibold mb-0.5">{schedule.leader_position}</div>
-                            <div className="text-xl font-black text-[#7f1d1d]">{schedule.leader_name}</div>
+                            {schedule.participants.map((p, pIdx) => (
+                              <div key={pIdx} className="mb-2 last:mb-0">
+                                <div className="text-lg text-slate-700 font-semibold mb-0.5">{p.position}</div>
+                                <div className="text-xl font-black text-[#7f1d1d]">{p.name}</div>
+                              </div>
+                            ))}
+                            {schedule.participants.length === 0 && '-'}
+                          </td>
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                            {schedule.preparation || '-'}
                           </td>
                           <td className="py-3 px-4 text-[#1e293b] text-xl font-bold">
                             {schedule.location}
@@ -383,12 +403,23 @@ export default function Dashboard() {
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-xl font-medium leading-relaxed">
                             {schedule.content}
                           </td>
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                            {schedule.program_document || '-'}
+                          </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-[#7f1d1d] font-bold text-xl">
                             {schedule.host || '-'}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5]">
-                            <div className="text-lg text-[#334155] font-semibold mb-0.5">{schedule.leader_position}</div>
-                            <div className="text-xl font-black text-[#7f1d1d]">{schedule.leader_name}</div>
+                            {schedule.participants.map((p, pIdx) => (
+                              <div key={pIdx} className="mb-2 last:mb-0">
+                                <div className="text-lg text-slate-700 font-semibold mb-0.5">{p.position}</div>
+                                <div className="text-xl font-black text-[#7f1d1d]">{p.name}</div>
+                              </div>
+                            ))}
+                            {schedule.participants.length === 0 && '-'}
+                          </td>
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
+                            {schedule.preparation || '-'}
                           </td>
                           <td className="py-3 px-4 text-[#1e293b] text-xl font-bold">
                             {schedule.location}

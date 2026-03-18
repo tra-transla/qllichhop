@@ -9,11 +9,15 @@ interface Schedule {
   date: string;
   time: string;
   content: string;
-  leader_id: number;
+  program_document?: string;
+  preparation?: string;
   location: string;
-  leader_name: string;
-  leader_position: string;
   host?: string;
+  participants: {
+    id: number;
+    name: string;
+    position: string;
+  }[];
 }
 
 interface Leader {
@@ -41,7 +45,9 @@ export default function Schedules() {
     date: format(tomorrow, 'yyyy-MM-dd'),
     time: '08:00',
     content: '',
-    leader_id: '',
+    program_document: '',
+    preparation: '',
+    leader_ids: [] as number[],
     location: '',
     host: ''
   });
@@ -54,9 +60,8 @@ export default function Schedules() {
           .from('schedules')
           .select(`
             *,
-            leaders (
-              name,
-              position
+            schedule_participants (
+              leaders (*)
             )
           `)
           .order('date', { ascending: false })
@@ -72,8 +77,7 @@ export default function Schedules() {
 
       const formattedSchedules = (schedRes.data || []).map(s => ({
         ...s,
-        leader_name: s.leaders?.name,
-        leader_position: s.leaders?.position
+        participants: (s.schedule_participants || []).map((p: any) => p.leaders).filter(Boolean)
       }));
 
       setSchedules(formattedSchedules);
@@ -92,10 +96,12 @@ export default function Schedules() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const { leader_ids, ...scheduleData } = formData;
       const payload = {
-        ...formData,
-        leader_id: parseInt(formData.leader_id, 10)
+        ...scheduleData
       };
+
+      let scheduleId = editingId;
 
       if (editingId) {
         const { error } = await supabase
@@ -104,14 +110,38 @@ export default function Schedules() {
           .eq('id', editingId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('schedules')
-          .insert([payload]);
+          .insert([payload])
+          .select();
         if (error) throw error;
+        scheduleId = data[0].id;
       }
+
+      // Update participants
+      if (scheduleId) {
+        // Delete old
+        await supabase
+          .from('schedule_participants')
+          .delete()
+          .eq('schedule_id', scheduleId);
+
+        // Insert new
+        if (leader_ids.length > 0) {
+          const participantPayloads = leader_ids.map(lId => ({
+            schedule_id: scheduleId,
+            leader_id: lId
+          }));
+          const { error: pError } = await supabase
+            .from('schedule_participants')
+            .insert(participantPayloads);
+          if (pError) throw pError;
+        }
+      }
+
       setIsModalOpen(false);
       setEditingId(null);
-      setFormData({ ...formData, content: '', location: '' }); // keep date/time/leader for quick entry
+      setFormData({ ...formData, content: '', location: '', program_document: '', preparation: '', leader_ids: [] });
       fetchData();
     } catch (error) {
       console.error('Failed to save schedule:', error);
@@ -146,7 +176,9 @@ export default function Schedules() {
       date: schedule.date,
       time: schedule.time.substring(0, 5), // Ensure HH:mm format
       content: schedule.content,
-      leader_id: schedule.leader_id.toString(),
+      program_document: schedule.program_document || '',
+      preparation: schedule.preparation || '',
+      leader_ids: schedule.participants.map(p => p.id),
       location: schedule.location || '',
       host: schedule.host || ''
     });
@@ -160,13 +192,13 @@ export default function Schedules() {
 
   const downloadTemplate = () => {
     const wsData = [
-      ['Ngày (DD/MM/YYYY)', 'Giờ (HH:MM)', 'Nội dung', 'ID Lãnh đạo', 'Địa điểm'],
-      [format(tomorrow, 'dd/MM/yyyy'), '08:00', 'Họp giao ban thường kỳ', leaders[0]?.id || 1, 'Phòng họp số 1']
+      ['Ngày (DD/MM/YYYY)', 'Giờ (HH:MM)', 'Nội dung', 'Chương trình/Văn bản', 'Chủ trì', 'ID Lãnh đạo (Cách nhau bởi dấu phẩy)', 'Chuẩn bị', 'Địa điểm'],
+      [format(tomorrow, 'dd/MM/yyyy'), '08:00', 'Họp giao ban thường kỳ', 'Quyết định số 123', 'Đ/c A', leaders[0]?.id || 1, 'Báo cáo tháng', 'Phòng họp số 1']
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
     // Force the date column to be treated as text to prevent Excel auto-formatting issues
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:E2');
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:H2');
     for (let R = range.s.r; R <= range.e.r; ++R) {
       const cellAddress = XLSX.utils.encode_cell({ r: R, c: 0 });
       if (ws[cellAddress]) {
@@ -239,22 +271,44 @@ export default function Schedules() {
            }
         }
 
+        const leaderIdsRaw = row['ID Lãnh đạo (Cách nhau bởi dấu phẩy)'] || row['ID Lãnh đạo'];
+        const leaderIds = typeof leaderIdsRaw === 'string' 
+          ? leaderIdsRaw.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id))
+          : typeof leaderIdsRaw === 'number' ? [leaderIdsRaw] : [];
+
         return {
           date: date,
           time: time,
           content: row['Nội dung'],
-          leader_id: parseInt(row['ID Lãnh đạo'], 10),
-          location: row['Địa điểm'] || ''
+          program_document: row['Chương trình/Văn bản'] || '',
+          host: row['Chủ trì'] || '',
+          preparation: row['Chuẩn bị'] || '',
+          location: row['Địa điểm'] || '',
+          leader_ids: leaderIds
         };
-      }).filter((p: any) => p.date && p.time && p.content && !isNaN(p.leader_id));
+      }).filter((p: any) => p.date && p.time && p.content);
 
       if (payloads.length === 0) {
         alert('Không tìm thấy dữ liệu hợp lệ trong file. Vui lòng kiểm tra lại định dạng.');
         return;
       }
 
-      const { error } = await supabase.from('schedules').insert(payloads);
-      if (error) throw error;
+      for (const payload of payloads) {
+        const { leader_ids, ...scheduleData } = payload;
+        const { data, error } = await supabase.from('schedules').insert([scheduleData]).select();
+        if (error) {
+          console.error('Lỗi khi chèn lịch:', error);
+          continue;
+        }
+
+        if (data && data[0] && leader_ids.length > 0) {
+          const participantPayloads = leader_ids.map((lId: number) => ({
+            schedule_id: data[0].id,
+            leader_id: lId
+          }));
+          await supabase.from('schedule_participants').insert(participantPayloads);
+        }
+      }
 
       alert(`Đã nhập thành công ${payloads.length} lịch công tác!`);
       fetchData();
@@ -307,15 +361,17 @@ export default function Schedules() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[1200px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
               <th className="py-3 px-6 font-semibold text-slate-900 w-32">Ngày</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-24">Giờ</th>
               <th className="py-3 px-6 font-semibold text-slate-900">Nội dung</th>
+              <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chương trình/Văn bản</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chủ trì</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Đồng chí</th>
+              <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chuẩn bị</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Địa điểm</th>
               <th className="py-3 px-6 font-semibold text-slate-900 text-right w-24">Thao tác</th>
             </tr>
@@ -323,11 +379,11 @@ export default function Schedules() {
           <tbody className="divide-y divide-slate-200">
             {loading ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-slate-500">Đang tải dữ liệu...</td>
+                <td colSpan={9} className="py-8 text-center text-slate-500">Đang tải dữ liệu...</td>
               </tr>
             ) : schedules.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-slate-500">Chưa có lịch công tác nào</td>
+                <td colSpan={9} className="py-8 text-center text-slate-500">Chưa có lịch công tác nào</td>
               </tr>
             ) : (
               schedules.map((schedule) => (
@@ -337,10 +393,17 @@ export default function Schedules() {
                   </td>
                   <td className="py-3 px-6 text-slate-600 font-mono text-sm">{schedule.time}</td>
                   <td className="py-3 px-6 text-slate-900">{schedule.content}</td>
+                  <td className="py-3 px-6 text-slate-600">{schedule.program_document || '-'}</td>
                   <td className="py-3 px-6 text-slate-900 font-medium">{schedule.host || '-'}</td>
                   <td className="py-3 px-6 text-slate-600">
-                    <span className="font-medium text-slate-900">{schedule.leader_position}</span> {schedule.leader_name}
+                    {schedule.participants.map((p, idx) => (
+                      <div key={idx} className="mb-1 last:mb-0">
+                        <span className="font-medium text-slate-900">{p.position}</span> {p.name}
+                      </div>
+                    ))}
+                    {schedule.participants.length === 0 && '-'}
                   </td>
+                  <td className="py-3 px-6 text-slate-600">{schedule.preparation || '-'}</td>
                   <td className="py-3 px-6 text-slate-600">{schedule.location}</td>
                   <td className="py-3 px-6 text-right">
                     <div className="flex justify-end gap-2">
@@ -410,11 +473,22 @@ export default function Schedules() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nội dung công việc *</label>
                 <textarea
                   required
-                  rows={3}
+                  rows={2}
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                   placeholder="Nhập nội dung công việc..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Chương trình/Văn bản</label>
+                <input
+                  type="text"
+                  value={formData.program_document}
+                  onChange={(e) => setFormData({ ...formData, program_document: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Nhập chương trình hoặc văn bản kèm theo..."
                 />
               </div>
 
@@ -443,32 +517,49 @@ export default function Schedules() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Đồng chí (Lãnh đạo) *</label>
-                  <select
-                    required
-                    value={formData.leader_id}
-                    onChange={(e) => setFormData({ ...formData, leader_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="" disabled>-- Chọn Lãnh đạo --</option>
+                  <div className="border border-slate-300 rounded-md p-2 max-h-40 overflow-y-auto space-y-1">
                     {leaders.map(leader => (
-                      <option key={leader.id} value={leader.id}>
-                        {leader.position} {leader.name}
-                      </option>
+                      <label key={leader.id} className="flex items-center gap-2 hover:bg-slate-50 p-1 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.leader_ids.includes(leader.id)}
+                          onChange={(e) => {
+                            const ids = e.target.checked
+                              ? [...formData.leader_ids, leader.id]
+                              : formData.leader_ids.filter(id => id !== leader.id);
+                            setFormData({ ...formData, leader_ids: ids });
+                          }}
+                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-slate-700">{leader.position} {leader.name}</span>
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Địa điểm *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="VD: Phòng họp BCH"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Chuẩn bị</label>
+                  <input
+                    type="text"
+                    value={formData.preparation}
+                    onChange={(e) => setFormData({ ...formData, preparation: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Nhập nội dung chuẩn bị..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Địa điểm *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="VD: Phòng họp BCH"
+                  />
+                </div>
               </div>
 
               <div className="pt-4 flex justify-end gap-3">
