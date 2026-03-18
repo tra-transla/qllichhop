@@ -3,6 +3,7 @@ import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Clock as ClockIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import ResizeObserver from 'resize-observer-polyfill';
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -46,7 +47,10 @@ export default function Dashboard() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
 
+  console.log('Dashboard rendering, loading:', loading, 'schedules:', schedules.length);
+
   const fetchSchedules = async (start: Date, end: Date) => {
+    console.log('Fetching schedules for:', format(start, 'yyyy-MM-dd'), 'to', format(end, 'yyyy-MM-dd'));
     setLoading(true);
     try {
       const startStr = format(start, 'yyyy-MM-dd');
@@ -68,7 +72,12 @@ export default function Dashboard() {
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Fetched data:', data?.length || 0, 'rows');
 
       const formattedSchedules = (data || []).map(s => ({
         ...s,
@@ -168,19 +177,19 @@ export default function Dashboard() {
     const timeoutId = setTimeout(calculatePages, 1000);
     
     const container = document.getElementById('schedule-scroll-container');
-    let resizeObserver: ResizeObserver | null = null;
-    if (container && typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => {
+    let resizeObserverInstance: any = null;
+    if (container) {
+      resizeObserverInstance = new ResizeObserver(() => {
         calculatePages();
       });
-      resizeObserver.observe(container);
+      resizeObserverInstance.observe(container);
     }
     
     window.addEventListener('resize', calculatePages);
     return () => {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', calculatePages);
-      if (resizeObserver) resizeObserver.disconnect();
+      if (resizeObserverInstance) resizeObserverInstance.disconnect();
     };
   }, [schedules, todayStr, currentDate]);
 
@@ -311,7 +320,7 @@ export default function Dashboard() {
   }).filter(date => date >= todayStr);
 
   return (
-    <div className="relative h-screen w-full flex flex-col p-6 sm:p-10 overflow-hidden select-none">
+    <div className="relative h-screen w-full flex flex-col p-6 sm:p-10 overflow-hidden select-none" style={{ height: '100vh' }}>
       {/* Background Image with Opacity */}
       <div 
         className="absolute inset-0 z-0"
@@ -326,11 +335,11 @@ export default function Dashboard() {
       {/* Content Overlay */}
       <div className="relative z-10 flex flex-col h-full space-y-6">
         {/* Header Section: Logo, Title Box, and Org Info aligned horizontally */}
-        <div className="flex justify-between items-center px-4 sm:px-12 pt-4 sm:pt-6 shrink-0 gap-4 sm:gap-8">
+        <div className="flex justify-between items-center px-4 sm:px-12 pt-4 sm:pt-6 shrink-0">
           {/* Logo on the left */}
-          <div className="flex-1 flex justify-start items-center min-w-0">
+          <div className="flex-1 flex justify-start items-center min-w-0 pr-4 sm:pr-8">
             <img 
-              src="https://special.nhandan.vn/vung-buoc-tien-len-duoi-la-co-ve-vang-cua-Dang/assets/xbdprWoiui/thie-t-ke-chu-a-co-te-n-45-1000x1000.png" 
+              src="https://i.ibb.co/KjvsbZby/logo-codang.png" 
               alt="Logo" 
               className="w-24 h-24 sm:w-[150px] sm:h-[150px] object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.4)]"
               referrerPolicy="no-referrer"
@@ -338,7 +347,7 @@ export default function Dashboard() {
           </div>
 
           {/* Decorative Main Title Box in the center */}
-          <div className="relative px-4 sm:px-12 py-3 sm:py-5 bg-gradient-to-b from-[#a31d1d] to-[#7a1515] rounded-lg border-2 border-[#d4af37] shadow-2xl flex-[2] max-w-[850px]">
+          <div className="relative px-4 sm:px-12 py-3 sm:py-5 bg-gradient-to-b from-[#a31d1d] to-[#7a1515] rounded-lg border-2 border-[#d4af37] shadow-2xl flex-[2] max-w-[850px] mx-2 sm:mx-4">
             <h1 className="text-xl sm:text-3xl font-black text-white uppercase tracking-[0.1em] sm:tracking-[0.15em] drop-shadow-lg text-center leading-tight">
               Thông báo: Lịch công tác tuần
             </h1>
@@ -349,7 +358,7 @@ export default function Dashboard() {
           </div>
 
           {/* Organization info on the right */}
-          <div className="flex-1 flex flex-col items-end gap-2 min-w-0">
+          <div className="flex-1 flex flex-col items-end gap-2 min-w-0 pl-4 sm:pl-8">
             <div className="text-[#7f1d1d] font-bold uppercase leading-tight text-right drop-shadow-sm">
               <p className="text-sm sm:text-xl mb-0 sm:mb-1">Tỉnh uỷ Sơn La</p>
               <p className="text-lg sm:text-3xl">Ban Tổ chức</p>
@@ -521,17 +530,17 @@ export default function Dashboard() {
         </div>
 
         {/* TV Remote Navigation Guide */}
-        <div className="shrink-0 flex justify-center items-center gap-8 py-2 bg-black/20 backdrop-blur-sm rounded-full border border-white/10 text-white/60 text-xs sm:text-sm font-medium uppercase tracking-widest">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white">← / →</span>
+        <div className="shrink-0 flex justify-center items-center py-2 bg-black/40 rounded-full border border-white/10 text-white/60 text-xs sm:text-sm font-medium uppercase tracking-widest">
+          <div className="flex items-center mx-4">
+            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white mr-2">← / →</span>
             <span>Tuần trước / sau</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white">↑ / ↓</span>
+          <div className="flex items-center mx-4">
+            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white mr-2">↑ / ↓</span>
             <span>Chuyển trang</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white">OK / ENTER</span>
+          <div className="flex items-center mx-4">
+            <span className="px-2 py-0.5 bg-white/20 rounded border border-white/30 text-white mr-2">OK / ENTER</span>
             <span>Về hôm nay</span>
           </div>
         </div>
