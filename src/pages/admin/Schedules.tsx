@@ -368,7 +368,7 @@ export default function Schedules() {
               <th className="py-3 px-6 font-semibold text-slate-900 w-32">Ngày</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-24">Giờ</th>
               <th className="py-3 px-6 font-semibold text-slate-900">Nội dung</th>
-              <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chương trình/Văn bản</th>
+              <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chương trình<br />Văn bản</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chủ trì</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Đồng chí</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Địa điểm</th>
