@@ -302,7 +302,7 @@ export default function Dashboard() {
         className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
       >
         <div 
-          className="w-[900px] h-[900px]"
+          className="w-[1100px] h-[1100px]"
           style={{
             backgroundImage: 'url("https://i.ibb.co/1JRBgZfY/td.png")',
             backgroundSize: 'contain',
@@ -409,7 +409,7 @@ export default function Dashboard() {
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-xl font-medium leading-relaxed">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-2xl font-medium leading-relaxed">
                             {schedule.content}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
@@ -459,7 +459,7 @@ export default function Dashboard() {
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-xl font-medium leading-relaxed">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-2xl font-medium leading-relaxed">
                             {schedule.content}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
