@@ -342,6 +342,13 @@ export default function Dashboard() {
           <div className="w-[280px] text-[#7f1d1d] font-bold uppercase leading-tight text-center drop-shadow-sm">
             <p className="text-2xl mb-1">Tỉnh uỷ Sơn La</p>
             <p className="text-3xl">Ban Tổ chức</p>
+            <div className="flex items-center justify-center gap-1 mt-1 text-[#7f1d1d]">
+              <div className="h-px w-10 bg-[#7f1d1d]"></div>
+              <span className="text-[10px]">★</span>
+              <span className="text-base">★</span>
+              <span className="text-[10px]">★</span>
+              <div className="h-px w-10 bg-[#7f1d1d]"></div>
+            </div>
           </div>
         </div>
 
