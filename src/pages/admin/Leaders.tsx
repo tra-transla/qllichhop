@@ -200,10 +200,9 @@ export default function Leaders() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Chức vụ *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Chức vụ</label>
                 <input
                   type="text"
-                  required
                   value={formData.position}
                   onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"

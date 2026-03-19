@@ -427,11 +427,11 @@ export default function Dashboard() {
                             ))}
                             {schedule.participants.length === 0 && '-'}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
-                            {schedule.preparation || '-'}
-                          </td>
-                          <td className="py-3 px-4 text-[#1e293b] text-xl font-bold">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#1e293b] text-xl font-bold">
                             {schedule.location}
+                          </td>
+                          <td className="py-3 px-4 text-slate-800 text-xl font-medium">
+                            {schedule.preparation || '-'}
                           </td>
                         </tr>
                       );
@@ -477,11 +477,11 @@ export default function Dashboard() {
                             ))}
                             {schedule.participants.length === 0 && '-'}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
-                            {schedule.preparation || '-'}
-                          </td>
-                          <td className="py-3 px-4 text-[#1e293b] text-xl font-bold">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#1e293b] text-xl font-bold">
                             {schedule.location}
+                          </td>
+                          <td className="py-3 px-4 text-slate-800 text-xl font-medium">
+                            {schedule.preparation || '-'}
                           </td>
                         </tr>
                       );
