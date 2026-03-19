@@ -192,8 +192,8 @@ export default function Schedules() {
 
   const downloadTemplate = () => {
     const wsData = [
-      ['Ngày (DD/MM/YYYY)', 'Giờ (HH:MM)', 'Nội dung', 'Chương trình/Văn bản', 'Chủ trì', 'ID Lãnh đạo (Cách nhau bởi dấu phẩy)', 'Chuẩn bị', 'Địa điểm'],
-      [format(tomorrow, 'dd/MM/yyyy'), '08:00', 'Họp giao ban thường kỳ', 'Quyết định số 123', 'Đ/c A', leaders[0]?.id || 1, 'Báo cáo tháng', 'Phòng họp số 1']
+      ['Ngày (DD/MM/YYYY)', 'Giờ (HH:MM)', 'Nội dung', 'Chương trình/Văn bản', 'Chủ trì', 'ID Lãnh đạo (Cách nhau bởi dấu phẩy)', 'Địa điểm', 'Chuẩn bị'],
+      [format(tomorrow, 'dd/MM/yyyy'), '08:00', 'Họp giao ban thường kỳ', 'Quyết định số 123', 'Đ/c A', leaders[0]?.id || 1, 'Phòng họp số 1', 'Báo cáo tháng']
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
@@ -371,8 +371,8 @@ export default function Schedules() {
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chương trình/Văn bản</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chủ trì</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Đồng chí</th>
-              <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chuẩn bị</th>
               <th className="py-3 px-6 font-semibold text-slate-900 w-48">Địa điểm</th>
+              <th className="py-3 px-6 font-semibold text-slate-900 w-48">Chuẩn bị</th>
               <th className="py-3 px-6 font-semibold text-slate-900 text-right w-24">Thao tác</th>
             </tr>
           </thead>
@@ -403,8 +403,8 @@ export default function Schedules() {
                     ))}
                     {schedule.participants.length === 0 && '-'}
                   </td>
-                  <td className="py-3 px-6 text-slate-600">{schedule.preparation || '-'}</td>
                   <td className="py-3 px-6 text-slate-600">{schedule.location}</td>
+                  <td className="py-3 px-6 text-slate-600">{schedule.preparation || '-'}</td>
                   <td className="py-3 px-6 text-right">
                     <div className="flex justify-end gap-2">
                       <button
@@ -540,16 +540,6 @@ export default function Schedules() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Chuẩn bị</label>
-                  <input
-                    type="text"
-                    value={formData.preparation}
-                    onChange={(e) => setFormData({ ...formData, preparation: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Nhập nội dung chuẩn bị..."
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Địa điểm *</label>
                   <input
                     type="text"
@@ -558,6 +548,16 @@ export default function Schedules() {
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="VD: Phòng họp BCH"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Chuẩn bị</label>
+                  <input
+                    type="text"
+                    value={formData.preparation}
+                    onChange={(e) => setFormData({ ...formData, preparation: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Nhập nội dung chuẩn bị..."
                   />
                 </div>
               </div>
