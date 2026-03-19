@@ -36,7 +36,7 @@
 
 @layer base {
   body {
-    background-color: var(--color-slate-50);
+    background-color: #e4fee4;
     color: var(--color-slate-900);
     /* Ensure colors are rendered correctly on older browsers */
     color-scheme: light;
