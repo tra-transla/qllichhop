@@ -416,7 +416,7 @@ export default function Dashboard() {
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-2xl font-medium leading-relaxed">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-2xl font-medium leading-relaxed text-justify">
                             {schedule.content}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
@@ -466,7 +466,7 @@ export default function Dashboard() {
                           <td className="py-3 px-2 border-r border-[#fca5a5] text-center font-mono text-xl font-bold text-[#1e293b]">
                             {schedule.time.substring(0, 5)}
                           </td>
-                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-2xl font-medium leading-relaxed">
+                          <td className="py-3 px-4 border-r border-[#fca5a5] text-[#020617] text-2xl font-medium leading-relaxed text-justify">
                             {schedule.content}
                           </td>
                           <td className="py-3 px-4 border-r border-[#fca5a5] text-slate-800 text-xl font-medium">
